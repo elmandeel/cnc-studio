@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v148 · Sample Programs Menu</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v149 · Sequence Number Diagnostics</title><style>
 :root{color-scheme:dark;--bg:#07111f;--pane:#132338;--edge:#2d455e;--muted:#a9bed3;--ink:#edf6ff;--accent:#60d2f1}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,Segoe UI,Arial}header{padding:16px 20px;border-bottom:1px solid var(--edge);background:#101e30}h1{font-size:22px;margin:0}header p{margin:3px 0 0;color:var(--muted)}main{max-width:1900px;padding:12px;margin:auto;display:grid;grid-template-columns:350px minmax(0,1fr);gap:12px}.panel{border:1px solid var(--edge);border-radius:12px;background:var(--pane);overflow:hidden}.hd{padding:10px 12px;border-bottom:1px solid var(--edge);font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}.small{font-size:11px;color:var(--muted);font-weight:400}.body{padding:12px}.sidebar,.right{display:grid;gap:12px;align-content:start;min-width:0}.inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}label{display:grid;gap:3px;color:#d9e7f5;font-size:12px}input[type=number],input[type=text],select,textarea{width:100%;min-width:0;background:#0a1829;border:1px solid #3b536e;border-radius:6px;color:var(--ink);padding:7px;font:inherit}input[type=file]{font-size:11px;width:100%}textarea{height:130px;resize:vertical;font:12px/1.4 Consolas,monospace;white-space:pre;tab-size:2}.btn{border:1px solid #45617d;background:#25445f;color:white;border-radius:7px;padding:8px 11px;cursor:pointer;font:inherit}.btn:hover{background:#37617e}.primary{background:#087a9f;border-color:#27b3ce}.buttons{display:flex;flex-wrap:wrap;gap:7px}.code{max-height:410px;min-height:150px;overflow:auto;padding:5px}.code button{border:1px solid transparent;border-radius:5px;display:grid;grid-template-columns:44px 1fr;gap:5px;width:100%;background:transparent;color:#cbdced;padding:6px;text-align:left;font:12px Consolas,monospace;cursor:pointer}.code button.active{background:#205167;border-color:#76daf0}.code button.done{color:#86bcae}.code button:hover{background:#26445d}.views{display:grid;grid-template-columns:1fr 1fr;gap:12px}.view{min-width:0}canvas{width:100%;display:block;aspect-ratio:1.16/1;background:#071625;touch-action:none}.viewfoot{display:flex;gap:11px;flex-wrap:wrap;padding:9px;color:var(--muted);font-size:11px}.swatch{width:10px;height:10px;display:inline-block;margin-right:3px}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:11px}.controls label{display:flex;align-items:center;gap:6px}.controls input[type=range]{width:100px;accent-color:var(--accent)}#seek{width:100%;accent-color:var(--accent)}.timeline{display:flex;align-items:center;gap:12px;padding:0 12px 12px}.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:12px}.stats div{border:1px solid #30465d;border-radius:7px;padding:9px;background:#0b1929}.stats small{display:block;color:var(--muted)}.stats b{font:600 13px Consolas,monospace}.status{padding:0 13px 12px;color:var(--muted)}.warning{color:#ffd18b}.error{color:#ff9797}.note{padding:10px 12px;color:var(--muted);font-size:11px;border-top:1px solid var(--edge)}#messages{max-height:115px;overflow:auto;white-space:pre-wrap}.toolgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.notice{background:#243a4b;padding:8px;border-radius:6px;color:#dbf0ff}.tag{color:#71e2b5}@media(max-width:1100px){main{grid-template-columns:1fr}.sidebar{grid-template-columns:1fr 1fr}.code{max-height:260px}}@media(max-width:720px){.sidebar,.views{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 
 /* CAD/CAM workspace refresh */
@@ -188,7 +188,7 @@ body.cnc-program-3d #source { line-height: var(--cnc-code-line-height, 19px) !im
  background-repeat: no-repeat;
  background-attachment: scroll;
 }
-#rpm,#feed{font-size:clamp(12px,1.25vw,18px);overflow-wrap:anywhere;line-height:1.35}</style></head><body class="cnc-program-3d"><header><div><h1>◈ CNC Studio <span style="font-weight:400;color:#9db1c3">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div><span class="small" style="border:1px solid #526171;border-radius:5px;padding:5px 9px">v148 · SAMPLE PROGRAMS · TOOL PARKING · AUTO N5 · FANUC 31i SIMULATOR · EDUCATIONAL · HYBRID 2D</span></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><label>Choose G-code, Word, or PDF document<input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf"></label><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button><label class="cnc-sample-label" for="cnc-sample-program" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">Sample Programs
+#rpm,#feed{font-size:clamp(12px,1.25vw,18px);overflow-wrap:anywhere;line-height:1.35}</style></head><body class="cnc-program-3d"><header><div><h1>◈ CNC Studio <span style="font-weight:400;color:#9db1c3">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div><span class="small" style="border:1px solid #526171;border-radius:5px;padding:5px 9px">v149 · N/O ERROR LOCATIONS · SAMPLE PROGRAMS · TOOL PARKING · AUTO N5 · FANUC 31i SIMULATOR · EDUCATIONAL · HYBRID 2D</span></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><label>Choose G-code, Word, or PDF document<input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf"></label><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button><label class="cnc-sample-label" for="cnc-sample-program" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">Sample Programs
 <select id="cnc-sample-program" aria-label="Sample Programs" style="min-width:190px;max-width:100%;width:auto">
 <option value="" selected>Choose an example…</option>
 <option value="face">Face/Mill</option>
@@ -264,7 +264,7 @@ function validateProgram(steps){
  const available=new Set(validate().map(r=>r.number));
  for(const step of steps)for(const state of [step.before,step.after]){
   const number=Number(state&&state.tool);
-  if(number&&!available.has(number))throw Error('Program uses T'+number+', which is missing from the tool library. Add or renumber the tool, or update the program.');
+   if(number&&!available.has(number))throw cncSourceError(step.location,'Program uses T'+number+', which is missing from the tool library. Add or renumber the tool, or update the program.');
  }
  return true;
 }
@@ -596,6 +596,38 @@ function cncEnterBlock(index) {
 // Validate a draft without changing the active simulation. A temporarily blank
 // number input is incomplete, not zero, especially for G54 coordinates.
 let cncPreparedLoad=null,cncLoadError='',cncThreadSurface='auto';
+// Diagnostics use identifiers from the original program, never execution indexes.
+// Keep physical rows privately for editor selection, including repeated subprograms
+// and movements generated by canned cycles. Rebuild only when the source changes.
+let cncLocationText=null,cncLocationRows=[];
+function cncSourceLocations(text=$('source').value){
+ if(text===cncLocationText)return cncLocationRows;
+ let program=null;
+ const rows=String(text).split(/\r?\n/).map((raw,index)=>{
+  const code=raw.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim().replace(/^\/\s*/,'');
+  const header=/^O\s*(\d+)\s*$/i.exec(code);
+  if(header)program='O'+Number(header[1]);
+  const word=[...code.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].find(m=>m[1].toUpperCase()==='N');
+  const sequence=word&&/^\d+$/.test(word[2])?'N'+word[2]:null;
+  return {sourceLine:index+1,program,sequence,code,header:!!header};
+ });
+ cncLocationText=text;cncLocationRows=rows;return rows;
+}
+function cncSourceLocation(line,code=''){
+ return cncSourceLocations()[line-1]||{sourceLine:null,program:null,sequence:null,code,header:false};
+}
+function cncBlockLabel(location){
+ if(!location)return 'Program';
+ const prefix=location.program?location.program+' · ':'';
+ if(location.sequence)return prefix+location.sequence;
+ if(location.header)return location.program+' · Program header';
+ const code=String(location.code||'').replace(/\s+/g,' ').trim();
+ return prefix+'Unnumbered block'+(code?' ['+code.slice(0,64)+(code.length>64?'…':'')+']':'');
+}
+function cncSourceError(location,message){
+ const error=Error(cncBlockLabel(location)+': '+message);
+ error.cncSource=true;error.sourceLocation=location;return error;
+}
 function cncReadSetup(){
  function number(id,label,min=-Infinity,max=Infinity){
   const field=$(id),text=field.value.trim(),value=Number(text);
@@ -611,7 +643,7 @@ function cncReadSetup(){
 }
 function cncValidateSource(text){
  const allowed=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
- const rows=text.split(/\r?\n/);
+ const rows=text.split(/\r?\n/),locations=cncSourceLocations(text);
  for(let i=0;i<rows.length;i++){
   let line=rows[i].replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
   if(!line||line==='%')continue;
@@ -619,9 +651,9 @@ function cncValidateSource(text){
   if(!line)continue;
   const token=/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g;
   const words=[...line.matchAll(token)],remaining=line.replace(token,'').replace(/\s+/g,'');
-  if(remaining)throw Error('Source line '+(i+1)+': finish or correct '+remaining.slice(0,48)+'.');
+  if(remaining)throw cncSourceError(locations[i],'finish or correct '+remaining.slice(0,48)+'.');
   for(const word of words){
-   if(!allowed.has(word[1].toUpperCase())||!Number.isFinite(Number(word[2])))throw Error('Source line '+(i+1)+': invalid address '+word[0]+'.');
+   if(!allowed.has(word[1].toUpperCase())||!Number.isFinite(Number(word[2])))throw cncSourceError(locations[i],'invalid address '+word[0]+'.');
   }
  }
 }
@@ -958,34 +990,34 @@ function cncExpandPrograms(blocks){
   const line=block.line.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
   if(!line||line==='%')continue;
   const om=/^O\s*(\d+)\s*$/i.exec(line);
-  if(om){active=Number(om[1]);if(programs.has(active))problems.push('Duplicate subprogram O'+active);current=[];programs.set(active,current);continue;}
+   if(om){active=Number(om[1]);if(programs.has(active))problems.push(cncBlockLabel(block.location||cncSourceLocation(block.sourceLine,line))+': Duplicate subprogram O'+active);current=[];programs.set(active,current);continue;}
   if(/^%/.test(line))continue;
-  current.push({line,sourceLine:block.sourceLine});
+   current.push({line,sourceLine:block.sourceLine,location:block.location||cncSourceLocation(block.sourceLine,line)});
  }
  // A file containing only O programs uses the first as main unless it is called by another program.
  let entry=main;
  if(!entry.length&&programs.size){const referenced=new Set();for(const blocks of programs.values())for(const l of blocks){const m=/\bM\s*0?98(?![0-9.])/i.test(l.line)&&/P\s*(\d+)/i.exec(l.line);if(m)referenced.add(Number(m[1].slice(-4)));}entry=[...programs].find(([id])=>!referenced.has(id))?.[1]||programs.values().next().value;}
  const output=[];let operations=0;
- function run(blocks,label,depth){
-  if(depth>12)throw Error('Subprogram nesting exceeds 12 levels at '+label);
+  function run(blocks,label,depth,caller=null){
+   if(depth>12)throw cncSourceError(caller,'Subprogram nesting exceeds 12 levels at '+label);
   for(const sourceBlock of blocks){
-   const raw=sourceBlock.line,sourceLine=sourceBlock.sourceLine;
-   if(++operations>18000)throw Error('Subprogram expansion exceeds 18,000 blocks (possible recursion).');
+    const raw=sourceBlock.line,sourceLine=sourceBlock.sourceLine,location=sourceBlock.location;
+    if(++operations>18000)throw cncSourceError(location,'Subprogram expansion exceeds 18,000 blocks (possible recursion).');
    const line=raw.replace(/\([^)]*\)/g,'').trim();
    if(/\bM\s*0?99\b/i.test(line))return;
-   if(/\bM\s*0?(?:2|30)\b/i.test(line)){if(depth===0){output.push({line,origin:label,sourceLine});return;} problems.push(label+': M02/M30 encountered in subprogram.');return;}
+    if(/\bM\s*0?(?:2|30)\b/i.test(line)){if(depth===0){output.push({line,origin:label,sourceLine,location});return;} problems.push(cncBlockLabel(location)+': M02/M30 encountered in subprogram.');return;}
    if(/\bM\s*0?98(?![0-9.])/i.test(line)){
     const p=/P\s*(\d+)/i.exec(line),l=/L\s*(\d+)/i.exec(line);
-    if(!p){problems.push(label+': M98 missing P address');continue;}
+     if(!p){problems.push(cncBlockLabel(location)+': M98 missing P address');continue;}
     const digits=p[1],sub=Number(digits.length>4?digits.slice(-4):digits);
     const repeat=l?Number(l[1]):(digits.length>4?Number(digits.slice(0,-4)):1);
-    if(!programs.has(sub)){problems.push(label+': O'+sub+' not found for '+line);continue;}
-    if(!Number.isInteger(repeat)||repeat<1||repeat>200){problems.push(label+': invalid M98 repeat count '+repeat);continue;}
-    output.push({line,origin:label,sourceLine,call:true});
-    for(let i=0;i<repeat;i++)run(programs.get(sub),'O'+sub+' ['+(i+1)+'/'+repeat+']',depth+1);
+     if(!programs.has(sub)){problems.push(cncBlockLabel(location)+': O'+sub+' not found for '+line);continue;}
+     if(!Number.isInteger(repeat)||repeat<1||repeat>200){problems.push(cncBlockLabel(location)+': invalid M98 repeat count '+repeat);continue;}
+     output.push({line,origin:label,sourceLine,location,call:true});
+     for(let i=0;i<repeat;i++)run(programs.get(sub),'O'+sub+' ['+(i+1)+'/'+repeat+']',depth+1,location);
     continue;
    }
-   output.push({line,origin:label,sourceLine});
+    output.push({line,origin:label,sourceLine,location});
   }
  }
  run(entry,entry===main?'Main':'O'+[...programs].find(([,v])=>v===entry)?.[0],0);
@@ -996,11 +1028,12 @@ function cncExpandPrograms(blocks){
 // G84 F is treated as pitch (mm/rev) for this MET 238 program, not standard G94 feed.
 function cncExpandDrillingCycles(source){
  const output=[];let cycle=null,x=0,y=0,z=50,initial=10,rpm=0,feed=100,abs=true,units=1;
+ const locations=cncSourceLocations(source);
  const word=(line,k)=>{const m=new RegExp('(?:^|\\s)'+k+'\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))','i').exec(line);return m?Number(m[1]):null;};
  const fmt=v=>Number(v.toFixed(5));
  let sourceLine=0;
  // Every movement generated for a cycle belongs to the editor block that issued it.
- const emit=line=>output.push({line,sourceLine});
+  const emit=line=>output.push({line,sourceLine,location:locations[sourceLine-1]});
  for(const raw of source.split(/\r?\n/)){
   sourceLine++;
   const line=raw.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
@@ -1047,7 +1080,7 @@ function parse(workOrigin=origin){
  const expanded=cncExpandPrograms(cncExpandDrillingCycles($('source').value));
  let s={x:null,y:null,z:null,mode:0,abs:true,units:1,plane:17,tool:0,rpm:0,feed:0,spindle:false,comp:0,g52x:0,g52y:0,g52z:0},out=[],warn=[...expanded.problems];
  for(const item of expanded.output){
- const clean=item.line,words=[...clean.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(m=>({k:m[1].toUpperCase(),v:+m[2]}));
+ const clean=item.line,location=item.location||cncSourceLocation(item.sourceLine,clean),label=cncBlockLabel(location),words=[...clean.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(m=>({k:m[1].toUpperCase(),v:+m[2]}));
  if(!words.length)continue;
  const before={...s},p={},g=[],m=[];let n='';
  for(const w of words){if(w.k==='N')n='N'+w.v;else if(w.k==='G')g.push(w.v);else if(w.k==='M')m.push(w.v);else p[w.k]=w.v;}
@@ -1059,17 +1092,17 @@ function parse(workOrigin=origin){
   else if(v===41||v===42)s.comp=v;else if(v===40)s.comp=0;
   else if([54,43,94,97].includes(v)){}
   else if(v===52||v===53){}
-  else warn.push((n||item.origin)+': G'+v+' not yet geometrically implemented');
+   else warn.push(label+': G'+v+' not yet geometrically implemented');
  }
  if('T'in p)s.tool=p.T;if('S'in p)s.rpm=p.S;if('F'in p)s.feed=p.F*s.units;
  // M6 selects a tool without changing the programmed XYZ position.
 
- for(const v of m){if(v===3||v===4)s.spindle=true;else if([5,30,2].includes(v))s.spindle=false;else if(![6,8,9,98,99].includes(v))warn.push((n||item.origin)+': M'+v+' not simulated');}
+ for(const v of m){if(v===3||v===4)s.spindle=true;else if([5,30,2].includes(v))s.spindle=false;else if(![6,8,9,98,99].includes(v))warn.push(label+': M'+v+' not simulated');}
  // G52 establishes a local work-coordinate shift relative to G54. It does not
  // move the cutter, even when XYZ appear in the block. Unspecified axes retain
  // their previous shift; G52 X0 Y0 Z0 cancels all three.
  const isG52=g.includes(52),isG53=g.includes(53);
- if(isG52&&isG53)warn.push((n||item.origin)+': G52 and G53 cannot be combined in one block');
+ if(isG52&&isG53)warn.push(label+': G52 and G53 cannot be combined in one block');
  if(isG52){
   // EMCO Fanuc 31i E20: G52 shifts the local coordinate system without
   // moving the tool; omitted axes retain their current local offsets.
@@ -1083,10 +1116,10 @@ function parse(workOrigin=origin){
   }
  }
  const hasMove=!isG52&&['X','Y','Z'].some(k=>k in p),arc=[2,3].includes(s.mode);
- if(isG53&&s.mode!==0&&s.mode!==1)warn.push((n||item.origin)+': G53 with circular/canned motion is not supported');
- if(arc&&hasMove&&s.plane!==17)warn.push((n||item.origin)+': only XY G17 arcs supported');
- if(s.comp)warn.push((n||item.origin)+': G'+s.comp+' requires controller verification');
- out.push({n:(item.origin==='Main'?'':item.origin+' · ')+(n||String(out.length+1)),code:clean,sourceLine:item.sourceLine,before,after:{...s},hasMove,mode:s.mode,arc:arc&&hasMove,params:p,ends:m.includes(30)||m.includes(2),call:!!item.call});
+ if(isG53&&s.mode!==0&&s.mode!==1)warn.push(label+': G53 with circular/canned motion is not supported');
+ if(arc&&hasMove&&s.plane!==17)warn.push(label+': only XY G17 arcs supported');
+ if(s.comp)warn.push(label+': G'+s.comp+' requires controller verification');
+ out.push({n:(item.origin==='Main'?'':item.origin+' · ')+(n||String(out.length+1)),code:clean,sourceLine:item.sourceLine,location,before,after:{...s},hasMove,mode:s.mode,arc:arc&&hasMove,params:p,ends:m.includes(30)||m.includes(2),call:!!item.call});
  }
  return {out,warn:[...new Set(warn)]};
 }
@@ -1285,7 +1318,11 @@ diagPanel.innerHTML='<div class="hd">G-code Diagnostics <span id="diag-count" cl
 $('lines').closest('.panel').after(diagPanel);
 const dcss=document.createElement('style');dcss.textContent=`#lines button.cnc-error{background:#632b37!important;border-color:#ff737a!important;color:#fff}#lines button.cnc-collision{background:#674522!important;border-color:#ffc16b!important;color:#fff}#lines button.cnc-error.active,#lines button.cnc-collision.active{outline:2px solid white}.diag-entry{width:100%;text-align:left;display:block;border:1px solid #526072;color:#eaf2fa;background:#192e40;border-radius:8px;padding:9px;margin:6px 0;cursor:pointer}.diag-entry strong{color:#ffd38c}.diag-entry.error strong{color:#ff9c9c}.diag-entry small{display:block;color:#bcd0e2;margin-top:4px}#cnc-stopbox{display:none;position:fixed;z-index:2000;inset:0;background:#000b;align-items:center;justify-content:center;padding:16px}#cnc-stopbox.open{display:flex}#cnc-stopbox .dialog{width:min(560px,100%);max-height:85vh;overflow:auto;background:#14293c;color:#fff;border:2px solid #f5b266;border-radius:12px;padding:20px;box-shadow:0 18px 60px #000a}#cnc-stopbox pre{white-space:pre-wrap;background:#071522;border-radius:6px;padding:12px}`;document.head.appendChild(dcss);
 const stopbox=document.createElement('div');stopbox.id='cnc-stopbox';stopbox.setAttribute('role','alertdialog');stopbox.setAttribute('aria-modal','true');stopbox.innerHTML='<div class="dialog"><h2 id="cnc-stop-title">Simulation stopped</h2><p id="cnc-stop-message"></p><pre id="cnc-stop-code"></pre><p id="cnc-stop-fix"></p><div class="buttons"><button class="btn primary" id="cnc-stop-edit">Edit highlighted code</button><button class="btn" id="cnc-stop-dismiss">Close (remain paused)</button></div></div>';document.body.appendChild(stopbox);
-function cncAddIssue(type,step,line,code,message,fix){if(cncIssues.some(v=>v.type===type&&v.step===step&&v.message===message))return;cncIssues.push({type,step,line,code,message,fix});}
+function cncAddIssue(type,step,line,code,message,fix){
+ if(cncIssues.some(v=>v.type===type&&v.step===step&&v.line===line&&v.message===message))return;
+ const location=(steps[step]?.sourceLine===line&&steps[step].location)||cncSourceLocation(line,code);
+ cncIssues.push({type,step,line,location,code:location?.code||code,message,fix});
+}
 function cncLineNumber(code){let lines=$('source').value.split(/\r?\n/),clean=x=>x.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim().replace(/\s+/g,'').toUpperCase();let match=clean(code);return Math.max(1,lines.findIndex(l=>clean(l)===match)+1);}
 function cncCheck(){cncIssues=[];cncFault=null;const raw=$('source').value.split(/\r?\n/);const sourceStepIndex=new Map();steps.forEach((e,i)=>{if(Number.isInteger(e.sourceLine)&&!sourceStepIndex.has(e.sourceLine))sourceStepIndex.set(e.sourceLine,i);});const allowed=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C']);
  raw.forEach((line,index)=>{const stripped=line.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();if(!stripped||stripped==='%'||/^O\s*\d+$/i.test(stripped))return;const tokens=[...stripped.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)];let remaining=stripped.replace(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g,'').replace(/\s+/g,'');let matching=sourceStepIndex.has(index+1)?sourceStepIndex.get(index+1):-1;if(remaining&&!/^\/.*$/.test(remaining)){const fix=/\bG0?2\b/i.test(stripped)&&/\bY\s*5\s+2\s*R\s*25\b/i.test(stripped)?'Likely split Y coordinate: N300 G2 X41 Y52 R25. Verify this against the engineering drawing before editing.':'Check letter/value pairs, missing digits, punctuation and unsupported syntax.';cncAddIssue('error',matching,index+1,stripped,'Unrecognized or incomplete G-code: '+remaining,fix);}for(const t of tokens){if(!allowed.has(t[1].toUpperCase()))cncAddIssue('error',matching,index+1,stripped,'Unsupported address '+t[1].toUpperCase(),'Remove the address or use a supported G-code word.');if(!Number.isFinite(+t[2]))cncAddIssue('error',matching,index+1,stripped,'Invalid numeric value','Use a finite number.');}if(/\bF\s*-/.test(stripped))cncAddIssue('error',matching,index+1,stripped,'Negative feed value','Use a positive F feed rate.');if(/\bS\s*-/.test(stripped))cncAddIssue('error',matching,index+1,stripped,'Negative spindle speed','Use a nonnegative spindle speed.');});
@@ -1302,9 +1339,9 @@ function cncCheck(){cncIssues=[];cncFault=null;const raw=$('source').value.split
  if(off)cncAddIssue('error',i,line,e.code,'Nonfinite tool path','Correct the coordinates and arc parameters.');
  if(e.arc&&e.hasMove&&e.after.plane!==17)cncAddIssue('error',i,line,e.code,'Arc plane unsupported by simulation','Use G17 XY arcs or convert motion to verified linear moves.');
  });
- const list=$('diag-list');list.textContent='';cncIssues.sort((a,b)=>(a.step<0?Number.MAX_SAFE_INTEGER:a.step)-(b.step<0?Number.MAX_SAFE_INTEGER:b.step));cncIssues.forEach((d,idx)=>{const b=document.createElement('button');b.className='diag-entry '+d.type;b.innerHTML='<strong></strong><div></div><small></small>';b.querySelector('strong').textContent=(d.type==='collision'?'⚠ POTENTIAL COLLISION':'✖ CODE ERROR')+' · '+(d.line?'Source line '+d.line:'Program');b.querySelector('div').textContent=d.message;b.querySelector('small').textContent='Suggested fix: '+d.fix;b.onclick=()=>cncFocus(d);list.appendChild(b);});if(!cncIssues.length)list.textContent='✓ No issues found by the supported checks. This does not certify machine safety.';cncIssueByStep=new Map();for(const issue of cncIssues)if(!cncIssueByStep.has(issue.step))cncIssueByStep.set(issue.step,issue);$('diag-count').textContent=cncIssues.length+' issue(s)';return cncIssues;}
+ const list=$('diag-list');list.textContent='';cncIssues.sort((a,b)=>(a.step<0?Number.MAX_SAFE_INTEGER:a.step)-(b.step<0?Number.MAX_SAFE_INTEGER:b.step));cncIssues.forEach((d,idx)=>{const b=document.createElement('button');b.className='diag-entry '+d.type;b.innerHTML='<strong></strong><div></div><small></small>';b.querySelector('strong').textContent=(d.type==='collision'?'⚠ POTENTIAL COLLISION':'✖ CODE ERROR')+' · '+cncBlockLabel(d.location);b.querySelector('div').textContent=d.message;b.querySelector('small').textContent='Suggested fix: '+d.fix;b.onclick=()=>cncFocus(d);list.appendChild(b);});if(!cncIssues.length)list.textContent='✓ No issues found by the supported checks. This does not certify machine safety.';cncIssueByStep=new Map();for(const issue of cncIssues)if(!cncIssueByStep.has(issue.step))cncIssueByStep.set(issue.step,issue);$('diag-count').textContent=cncIssues.length+' issue(s)';return cncIssues;}
 function cncFocus(d){if(d.step>=0){stop();cursor=d.step;render();}const lines=$('source').value.split(/\r?\n/),idx=Math.max(0,d.line-1);let start=0;for(let j=0;j<idx;j++)start+=lines[j].length+1;$('source').focus();$('source').setSelectionRange(start,start+(lines[idx]||'').length);$('source').scrollIntoView({block:'nearest'});}
-function cncInterlock(d){stop();cncFault=d;cncFocus(d);$('cnc-stop-title').textContent=d.type==='collision'?'⚠ Potential collision — simulation stopped':'✖ G-code error — simulation stopped';$('cnc-stop-message').textContent=d.message+' (source line '+d.line+').';$('cnc-stop-code').textContent=d.code;$('cnc-stop-fix').textContent='Suggested solution: '+d.fix;stopbox.classList.add('open');}
+function cncInterlock(d){stop();cncFault=d;cncFocus(d);$('cnc-stop-title').textContent=d.type==='collision'?'⚠ Potential collision — simulation stopped':'✖ G-code error — simulation stopped';$('cnc-stop-message').textContent=cncBlockLabel(d.location)+': '+d.message;$('cnc-stop-code').textContent=d.code;$('cnc-stop-fix').textContent='Suggested solution: '+d.fix;stopbox.classList.add('open');}
 $('cnc-stop-edit').onclick=()=>{stopbox.classList.remove('open');if(cncFault)cncFocus(cncFault);};$('cnc-stop-dismiss').onclick=()=>stopbox.classList.remove('open');$('diag-check').onclick=()=>{load();};$('diag-clear').onclick=()=>{stopbox.classList.remove('open');cncFault=null;jump(0);};
 
 $('load').onclick=load;$('apply').onclick=load;
@@ -2028,9 +2065,9 @@ function compensated(e){const idx=steps.indexOf(e);if(idx<0)return originalSegme
 segments=function(e){if(e&&(e.before.comp||e.after.comp)&&e.hasMove&&e.mode===1&&!e.arc)return compensated(e);return originalSegments(e);};
 // Remove obsolete warning claiming compensation is ignored; leave explicit limitations.
 const oldLoad=load;
-load=function(){if(oldLoad()===false)return false;warnings=warnings.filter(w=>!w.includes('compensation ignored in stock removal'));for(let i=0;i<steps.length;i++){let e=steps[i];if((e.before.comp||e.after.comp)&&e.arc)warnings.push(`${e.n}: G41/G42 circular interpolation is not compensated; programmed arc is shown.`);
- if((e.before.comp||e.after.comp)&&e.hasMove&&e.mode===0)warnings.push(`${e.n}: Rapid movement with active compensation is not verified.`);
- if((e.before.comp||e.after.comp)&&e.hasMove&&e.mode===1&&(!dir(e))&&Math.abs((e.after.z??0)-(e.before.z??0))<1e-8)warnings.push(`${e.n}: Zero-length compensation move.`);
+load=function(){if(oldLoad()===false)return false;warnings=warnings.filter(w=>!w.includes('compensation ignored in stock removal'));for(let i=0;i<steps.length;i++){let e=steps[i];if((e.before.comp||e.after.comp)&&e.arc)warnings.push(`${cncBlockLabel(e.location)}: G41/G42 circular interpolation is not compensated; programmed arc is shown.`);
+ if((e.before.comp||e.after.comp)&&e.hasMove&&e.mode===0)warnings.push(`${cncBlockLabel(e.location)}: Rapid movement with active compensation is not verified.`);
+ if((e.before.comp||e.after.comp)&&e.hasMove&&e.mode===1&&(!dir(e))&&Math.abs((e.after.z??0)-(e.before.z??0))<1e-8)warnings.push(`${cncBlockLabel(e.location)}: Zero-length compensation move.`);
  }if(steps.some(e=>window.cncTools.name(e.after.tool)==='Chamfer mill'))warnings.push('Chamfer mill: tapered 2.5D stock-removal approximation; verify cutter diameter, tip diameter, and angle.');warnings=[...new Set(warnings)];render(cursor,1);};
 // Matrix: orthographic camera with stock-centered orbit. Z is vertical.
 function normalize(a){let l=Math.hypot(...a);return a.map(x=>x/(l||1));}
@@ -5248,7 +5285,7 @@ function asyncStartWorker(){
         const expected=+spec.pitch||1.5;
         if(turns>.5 && Math.abs(actual-expected)>Math.max(.05,expected*.08)){
           if(!window.__threadPitchWarnings)window.__threadPitchWarnings=[];
-          window.__threadPitchWarnings.push('T'+tool+' '+e.n+': helix pitch '+actual.toFixed(3)+' mm/rev differs from tool pitch '+expected.toFixed(3)+' mm. Check G02/G03 and Z advance.');
+          window.__threadPitchWarnings.push(cncBlockLabel(e.location)+': T'+tool+' helix pitch '+actual.toFixed(3)+' mm/rev differs from tool pitch '+expected.toFixed(3)+' mm. Check G02/G03 and Z advance.');
         }
       }
     }
@@ -6258,7 +6295,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
  const playback=['play','next','prev','seek'];
  const priorLoad=load,priorRender=render;
  let timer=0,dirty=false,composing=false,committing=false,importId=0,activeImport=null;
- let applied='',revision=0,updates=0,error='';
+ let applied='',revision=0,updates=0,error='',sourceError=false;
 
  function signature(){
   return JSON.stringify([editor.value,fields.map(id=>$(id).value),window.cncTools.snapshotDraft()]);
@@ -6267,7 +6304,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   status.dataset.state=kind;status.textContent=message;
   const blocked=kind==='invalid'||kind==='importing'||(kind==='ready'&&!steps.length);
   for(const id of playback)$(id).disabled=blocked;
-  editor.setAttribute('aria-invalid',kind==='invalid'&&!!error&&/^Source line/.test(error)?'true':'false');
+  editor.setAttribute('aria-invalid',kind==='invalid'&&sourceError?'true':'false');
  }
  function cancelTimer(){if(timer){clearTimeout(timer);timer=0;}}
  function cancelImport(){
@@ -6295,7 +6332,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   let prepared;
   try{prepared=cncPrepareProgram();}
   catch(err){
-   error=err&&err.message?err.message:String(err);dirty=true;
+   error=err&&err.message?err.message:String(err);sourceError=!!err?.cncSource;dirty=true;
    state('invalid','Update paused: '+error+' Previous preview retained.');
    return false;
   }
@@ -6304,7 +6341,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
    cncPreparedLoad=prepared;
    if(priorLoad()===false)throw Error(cncLoadError||'The program could not be updated.');
   }catch(err){
-   error=err&&err.message?err.message:String(err);dirty=true;
+   error=err&&err.message?err.message:String(err);sourceError=!!err?.cncSource;dirty=true;
    state('invalid','Update paused: '+error);
    return false;
   }finally{committing=false;cncPreparedLoad=null;}

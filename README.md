@@ -10,7 +10,9 @@ Open the link in a modern web browser. No GitHub account or HTML download is req
 
 ## Current version
 
-**v148 — Sample Programs Menu**
+**v149 — Sequence Number Diagnostics**
+
+Program errors identify the original **N sequence number**. Errors inside a numbered program also include its **O program number**, for example **O14 · N35**. This source location is preserved through repeated subprogram calls and expanded drilling/tapping cycles. A block without an N number is identified as **Unnumbered block**, with its code shown for context; selecting an error still targets the original editor block.
 
 Use the **Sample Programs** dropdown to load **Face/Mill**, **Drill/Tap**, or **Subprogram**. Each selection loads its program, stock, G54, and tool setup. The separate sample buttons and the two classwork-specific stock/tool preset controls have been removed.
 
