@@ -6,7 +6,7 @@ CNC Studio is a browser-based CNC milling simulator based on Fanuc 31i programmi
 
 [**Launch CNC Studio**](https://elmandeel.github.io/cnc-studio/)
 
-Open the link in a modern web browser. No GitHub account or HTML download is required. You can share this same link in Microsoft Teams.
+Open the link in a modern web browser. No GitHub account or HTML download is required.
 
 ## Current version
 
