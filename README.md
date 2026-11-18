@@ -10,7 +10,9 @@ Open the link in a modern web browser. No GitHub account or HTML download is req
 
 ## Current version
 
-**v147 — Automatic Updates**
+**v148 — Sample Programs Menu**
+
+Use the **Sample Programs** dropdown to load **Face/Mill**, **Drill/Tap**, or **Subprogram**. Each selection loads its program, stock, G54, and tool setup. The separate sample buttons and the two classwork-specific stock/tool preset controls have been removed.
 
 Program edits and changes to stock, G54, and tool data update the simulation preview automatically. Valid text and numeric edits are applied after a short pause of approximately 450 milliseconds. A valid project change stops playback, rebuilds the preview, and returns the simulation to the start. Use **Play** or **Step** to animate the updated program.
 
