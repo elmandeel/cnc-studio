@@ -2,6 +2,12 @@
 
 CNC Studio is a browser-based CNC milling simulator based on Fanuc 31i programming, created by Dr. Ali Almandeel with AI assistance. Designed for teaching and learning, it includes G-code editing, 2D and 3D simulation, and tool and stock setup. Currently in beta and under active development.
 
+## Run online
+
+[**Launch CNC Studio**](https://elmandeel.github.io/cnc-studio/)
+
+Open the link in a modern web browser. No GitHub account or HTML download is required. You can share this same link in Microsoft Teams.
+
 ## Current version
 
 **v147 — Automatic Updates**
