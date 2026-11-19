@@ -20,6 +20,16 @@ Program edits and changes to stock, G54, and tool data update the simulation pre
 
 Incomplete or invalid entries pause the update and retain the previous valid preview until corrected.
 
+## Add to the iPhone or iPad Home Screen
+
+The custom CNC cutter icon and **CNC Studio** launch name are included. This icon update preserves the v149 simulator code and interface.
+
+1. Open [CNC Studio](https://elmandeel.github.io/cnc-studio/) in Safari.
+2. Tap **Share**, then **Add to Home Screen**.
+3. Keep the name **CNC Studio**, enable **Open as Web App** if offered, then tap **Add**.
+
+If an existing shortcut still shows the old icon, remove that shortcut and add it again from the refreshed website. The hosted app requires a connection to load; this update does not add offline caching.
+
 ## Run locally
 
 1. Download `index.html`.
@@ -32,3 +42,4 @@ Incomplete or invalid entries pause the update and retain the previous valid pre
 Features, simulation accuracy, and browser compatibility are still being developed and tested. Fanuc 31i programming is the reference for the simulator; this beta does not implement every command or controller behavior.
 
 Phone-sized browser tests have been performed, including touch gestures. Physical iPhone and Android testing remains outstanding for this release.
+
