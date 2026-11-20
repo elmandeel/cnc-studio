@@ -153,7 +153,9 @@ body.cnc-clean .controls{gap:9px}
 body.cnc-clean .workspacebar{gap:8px}
 .cnc-clean-action{font:inherit;border:1px solid #3b516a;background:#21374d;color:#e9f4ff;border-radius:8px;padding:8px 12px;cursor:pointer}
 .cnc-clean-action[aria-expanded="true"]{background:#17668a;border-color:#58add0}
-.cnc-ui-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.cnc-ui-actions{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin:0 0 0 auto;flex-shrink:0}
+.sidebar>.panel:first-child>.hd .cnc-clean-action{font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap;line-height:1.3}
+@media(max-width:420px){.sidebar>.panel:first-child>.hd .cnc-clean-action{font-size:11px;padding:6px 8px}.sidebar>.panel:first-child>.hd{gap:5px}}
 body.cnc-clean .views.focus-3d{min-height:440px}
 body.cnc-clean .views.focus-3d .view:last-child{min-height:min(66vh,760px)}
 body.cnc-clean .views.focus-3d .viewport{min-height:400px}
@@ -5992,7 +5994,11 @@ asyncStartWorker();
    }
    advanced.addEventListener('click',()=>showSection('advanced'));
 
-   actions.append(advanced);importPanel.append(actions);
+   // Keep settings beside the Import program heading, not below validation results.
+   const importHeading=importPanel.querySelector('.hd');
+   actions.append(advanced);
+   if(importHeading)importHeading.append(actions);
+   else importPanel.querySelector('.body')?.prepend(actions);
   }
   const focus=document.querySelector('[data-layout="3d"]');
   // Preserve user-selected split/2D/3D layout; do not force 3D focus.
