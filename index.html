@@ -6303,20 +6303,29 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
  });
  editor.addEventListener('compositionend',()=>{if(editor.value.includes('\n'))apply(false);});
  editor.addEventListener('blur',()=>apply(true));
- // Support mobile virtual keyboards when auto-sequence numbering is disabled.
+ // Finish the current block before starting the next, with or without N numbering.
+ // Capture phase takes priority over the old numbering-only Enter handler.
  editor.addEventListener('keydown',event=>{
-   const sequence=document.getElementById('cnc-auto-sequence');
-   if(sequence?.checked||event.key!=='Enter'||event.isComposing||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey)return;
+   if(event.key!=='Enter'||event.isComposing||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey)return;
    const start=editor.selectionStart,end=editor.selectionEnd;
    const before=editor.value.slice(0,start),after=editor.value.slice(end);
    const lineStart=before.lastIndexOf('\n')+1;
    const current=before.slice(lineStart),tail=after.split('\n',1)[0];
+   const nextLine=after.slice(tail.length).replace(/^\n/,'').split('\n',1)[0];
    const completed=completeLine(current+tail);
-   if(completed===current+tail)return;
+   const numbered=document.getElementById('cnc-auto-sequence')?.checked;
+   let next='';
+   if(numbered&&!/^\s*N\d+\b/i.test(nextLine)){
+     const previous=editor.value.slice(0,lineStart)+current;
+     const numbers=[...previous.matchAll(/^\s*N(\d+)\b/gim)];
+     const last=numbers.length?Number(numbers[numbers.length-1][1]):0;
+     next='N'+(Math.floor(last/5)*5+5)+' ';
+   }
    event.preventDefault();
-   editor.setRangeText(completed+'\n',lineStart,end+tail.length,'end');
+   event.stopImmediatePropagation();
+   editor.setRangeText(completed+'\n'+next,lineStart,end+tail.length,'end');
    editor.dispatchEvent(new Event('input',{bubbles:true}));
- });
+ },true);
 })();
 </script>
 <script id="cnc-manual-auto-sequence">
