@@ -6852,7 +6852,12 @@ async function configure(){
   const u=new URL(cfg.endpoint);
   if(u.username||u.password||u.pathname!=='/validate')throw Error('Invalid Worker endpoint.');
   config={endpoint:cfg.endpoint,siteKey:cfg.turnstileSiteKey};
+  // Invisible mode is selected on the Cloudflare widget itself. This client-side
+  // flag only removes the reserved visual space after that mode is configured.
+  const invisible=cfg.turnstileMode==='invisible';
   await loadTurnstile();
+  challenge.style.minHeight=invisible?'0':'';
+  challenge.style.height=invisible?'0':'';
   widgetId=window.turnstile.render(challenge,{sitekey:config.siteKey,theme:'auto',appearance:'interaction-only',
     callback:()=>{if(automatic.checked&&editor.value.trim())reviewAfter('verified',600);},
     'expired-callback':()=>say('Verification expired; complete a new challenge if prompted.')});
