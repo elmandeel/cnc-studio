@@ -6881,7 +6881,7 @@ manualStatus.textContent='Loading FANUC 31i programming references…';
 const manualResults=document.createElement('div');
 manualResults.id='cnc-fanuc-reference-results';
 manualDetails.append(manualHeading,manualStatus,manualResults);
-zone.append(manualDetails);
+// Keep reference data for AI review, but do not display the manual reference panel.
 let fanucManualEntries=[];
 function fanucCodeKey(word){
  const m=String(word).match(/^([GM])0*(\d+(?:\.\d+)?)$/i);
