@@ -6320,17 +6320,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    const nextLine=after.slice(tail.length).replace(/^\n/,'').split('\n',1)[0];
    // Only the block being left gets a semicolon. The following N line stays open.
    const completed=completeLine(current+tail);
-   const numbered=document.getElementById('cnc-auto-sequence')?.checked;
-   let next='';
-   if(numbered&&!/^\s*N\d+\b/i.test(nextLine)){
-     const previous=editor.value.slice(0,lineStart)+current;
-     const numbers=[...previous.matchAll(/^\s*N(\d+)\b/gim)];
-     const last=numbers.length?Number(numbers[numbers.length-1][1]):0;
-     next='N'+(Math.floor(last/5)*5+5)+' ';
-   }
+   // With auto numbering enabled, let its dedicated handler create N5, N10,
+   // N15, etc. That same handler finalizes the old block with a semicolon.
+   if(document.getElementById('cnc-auto-sequence')?.checked)return;
    event.preventDefault();
    event.stopImmediatePropagation();
-   editor.setRangeText(completed+'\n'+next,lineStart,end+tail.length,'end');
+   editor.setRangeText(completed+'\n',lineStart,end+tail.length,'end');
    editor.dispatchEvent(new Event('input',{bubbles:true}));
  },true);
 })();
