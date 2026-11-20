@@ -1,0 +1,244 @@
+{
+  "title": "EMCO WinNC for FANUC 31i Mill — Programming Reference Index",
+  "source": "EMCO WinNC for Fanuc 31i Mill EN 1846 C 02",
+  "edition": "2017",
+  "totalPdfPages": 324,
+  "note": "Original concise study notes keyed to manual PDF pages (PDF page numbering). This is not the full manual and is not a substitute for machine-specific documentation.",
+  "entries": [
+    {
+      "codes": [
+        "G00",
+        "G0"
+      ],
+      "topic": "Rapid positioning",
+      "page": 221,
+      "section": "E7",
+      "guidance": "Rapid travel is non-cutting positioning. Confirm clearance and tool approach before cutting moves."
+    },
+    {
+      "codes": [
+        "G01",
+        "G1"
+      ],
+      "topic": "Linear interpolation",
+      "page": 222,
+      "section": "E8",
+      "guidance": "Linear feed movement uses programmed axes and feed rate; check modal motion and coordinate positions."
+    },
+    {
+      "codes": [
+        "G02",
+        "G2",
+        "G03",
+        "G3"
+      ],
+      "topic": "Circular interpolation",
+      "page": 225,
+      "section": "E11",
+      "guidance": "Check clockwise or counterclockwise direction, active plane, end point and arc center/radius definition."
+    },
+    {
+      "codes": [
+        "G17",
+        "G18",
+        "G19"
+      ],
+      "topic": "Working plane",
+      "page": 218,
+      "section": "E4",
+      "guidance": "G17 selects XY, G18 selects ZX, and G19 selects YZ; check plane-dependent arcs and offsets."
+    },
+    {
+      "codes": [
+        "G20",
+        "G21"
+      ],
+      "topic": "Unit selection",
+      "page": 218,
+      "section": "E4",
+      "guidance": "G20 selects inches and G21 selects metric input; CNC Studio course examples use metric."
+    },
+    {
+      "codes": [
+        "G40",
+        "G41",
+        "G42"
+      ],
+      "topic": "Cutter radius compensation",
+      "page": 229,
+      "section": "E15",
+      "guidance": "G41 is left and G42 right cutter compensation relative to feed direction; G40 cancels. Lead-in/out geometry matters."
+    },
+    {
+      "codes": [
+        "G43",
+        "G44",
+        "G49"
+      ],
+      "topic": "Tool length offset",
+      "page": 232,
+      "section": "E18",
+      "guidance": "G43 applies positive tool length offset with H; G44 negative, G49 cancels. Verify the tool length register."
+    },
+    {
+      "codes": [
+        "G52",
+        "G53",
+        "G54",
+        "G55",
+        "G56",
+        "G57",
+        "G58",
+        "G59"
+      ],
+      "topic": "Coordinate systems",
+      "page": 234,
+      "section": "E20",
+      "guidance": "G52 defines a local offset, G53 refers to machine coordinates for its block, and G54–G59 select work offsets."
+    },
+    {
+      "codes": [
+        "G68",
+        "G69"
+      ],
+      "topic": "Coordinate rotation",
+      "page": 238,
+      "section": "E24",
+      "guidance": "G68 rotates the active coordinate system around a programmed center; G69 cancels."
+    },
+    {
+      "codes": [
+        "G73"
+      ],
+      "topic": "Chip-breaking drilling",
+      "page": 240,
+      "section": "E26",
+      "guidance": "Check Z, R, Q peck increment, P dwell, F feed and G98/G99 return mode."
+    },
+    {
+      "codes": [
+        "G74",
+        "G84"
+      ],
+      "topic": "Tapping cycles",
+      "page": 243,
+      "section": "E29",
+      "guidance": "Tapping behavior depends on controller and spindle synchronization; verify feed, pitch and cycle return settings."
+    },
+    {
+      "codes": [
+        "G76"
+      ],
+      "topic": "Fine boring",
+      "page": 241,
+      "section": "E27",
+      "guidance": "Fine boring cycle with controller-dependent parameters; check axis and retract behavior."
+    },
+    {
+      "codes": [
+        "G80"
+      ],
+      "topic": "Canned-cycle cancellation",
+      "page": 219,
+      "section": "E5",
+      "guidance": "G80 cancels active fixed drilling and boring cycles; confirm subsequent movements are not unintentionally cycled."
+    },
+    {
+      "codes": [
+        "G81",
+        "G82"
+      ],
+      "topic": "Drilling and dwell",
+      "page": 242,
+      "section": "E28",
+      "guidance": "G81 drills to depth and rapidly retracts; G82 includes a dwell. Verify Z, R, F and return mode."
+    },
+    {
+      "codes": [
+        "G83"
+      ],
+      "topic": "Deep-hole drilling",
+      "page": 243,
+      "section": "E29",
+      "guidance": "G83 retracts between pecks for chip removal; check Q, R, Z and F."
+    },
+    {
+      "codes": [
+        "G85",
+        "G89"
+      ],
+      "topic": "Feed retraction and dwell",
+      "page": 244,
+      "section": "E30",
+      "guidance": "G85 feeds during drilling and withdrawal; G89 adds a dwell."
+    },
+    {
+      "codes": [
+        "G90",
+        "G91"
+      ],
+      "topic": "Absolute and incremental",
+      "page": 245,
+      "section": "E31",
+      "guidance": "G90 programs absolute positions; G91 programs incremental displacements. Check modal state."
+    },
+    {
+      "codes": [
+        "G94",
+        "G95"
+      ],
+      "topic": "Feed modes",
+      "page": 245,
+      "section": "E31",
+      "guidance": "G94 is feed per minute; G95 is feed per spindle revolution. Interpret F accordingly."
+    },
+    {
+      "codes": [
+        "G98",
+        "G99"
+      ],
+      "topic": "Cycle return level",
+      "page": 242,
+      "section": "E28",
+      "guidance": "G98 and G99 specify return to initial plane or R plane during canned cycles."
+    },
+    {
+      "codes": [
+        "M00",
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M30"
+      ],
+      "topic": "Core machine M commands",
+      "page": 215,
+      "section": "E1",
+      "guidance": "Machine program stop/end, spindle direction, tool change, and coolant functions. Machine-specific options may differ."
+    },
+    {
+      "codes": [
+        "M29"
+      ],
+      "topic": "Tapping spindle mode",
+      "page": 215,
+      "section": "E1",
+      "guidance": "M29 tapping synchronization is machine/controller dependent; confirm it is supported by the chosen configuration."
+    },
+    {
+      "codes": [
+        "M98",
+        "M99"
+      ],
+      "topic": "Subprogram calls and return",
+      "page": 210,
+      "section": "D130",
+      "guidance": "M98 calls a subroutine with P program reference; M99 returns to the caller. Check target O numbers and repetition syntax."
+    }
+  ]
+}
