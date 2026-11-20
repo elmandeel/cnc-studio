@@ -6370,7 +6370,15 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    // Enter at the beginning of an existing numbered block inserts a new
    // blank numbered block immediately before it, instead of splitting its N word.
    if(seq.test(remainder)){
-     if(current.trim())return;
+     if(current.trim()){
+       // Split before an existing N block: finalize the block on the left
+       // without creating a duplicate line or interfering with the N below.
+       const finished=window.cncCompleteSemicolonLine?.(current)??current;
+       event.preventDefault();
+       editor.setRangeText(finished+'\n',before.lastIndexOf('\n')+1,end,'end');
+       editor.dispatchEvent(new Event('input',{bubbles:true}));
+       return;
+     }
      const candidate=nextNumber(before,after);
      if(candidate===null){event.preventDefault();return;}
      event.preventDefault();
@@ -6382,11 +6390,20 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    }
    const next=nextNumber(before,after);
    if(next===null){
-     // There is no unused integer between adjacent sequence numbers. Preserve
-     // existing N labels and do not silently renumber referenced blocks.
-     const status=document.getElementById('loadstatus');
-     if(status)status.textContent='No free N number between these blocks. Renumber the surrounding blocks to create a gap.';
+     // No unused N label remains: STILL finish the previous block on Enter.
+     // Leave the next existing numbered block alone rather than creating
+     // duplicate N numbers or silently renumbering program references.
+     const completed=window.cncCompleteSemicolonLine?.(current+remainder)??(current+remainder);
      event.preventDefault();
+     const lineStart=before.lastIndexOf('\n')+1;
+     if(completed!==current+remainder){
+       editor.setRangeText(completed,lineStart,end+remainder.length,'end');
+     }
+     const nextRow=editor.value.indexOf('\n',lineStart);
+     if(nextRow>=0)editor.setSelectionRange(nextRow+1,nextRow+1);
+     const status=document.getElementById('loadstatus');
+     if(status)status.textContent='Block completed. No unused N sequence number remains in this gap.';
+     editor.dispatchEvent(new Event('input',{bubbles:true}));
      return;
    }
    // An empty editor begins with N5; otherwise Enter starts the next block.
