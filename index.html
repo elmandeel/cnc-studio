@@ -841,7 +841,8 @@ function cncValidateSource(text){
  }
 }
 function cncPrepareProgram(){
- window.cncFinalizeSemicolons?.(true);
+ // Leave the currently edited last block alone until Enter, blur, or explicit import.
+ window.cncFinalizeSemicolons?.(false);
  const config=cncReadSetup(),text=$('source').value;
  cncValidateSource(text);
  window.cncTools.mergeFromDocument('',text);
@@ -1153,7 +1154,7 @@ $('file').addEventListener('change',async e=>{
   // Commit only after extraction succeeds. A failed import preserves the old project.
   window.cncTools.clearForImport();
   const toolMsg=window.cncTools.mergeFromDocument(raw,program);
-  $('source').value=program;
+  $('source').value=program;window.cncFinalizeSemicolons?.(true);
   const values=cncInferNewSetup(program,raw);
   for(const [id,value] of Object.entries(values))$(id).value=value;
   $('stockshape').value='rect';
@@ -1541,7 +1542,7 @@ c3.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};c3.setPointerCapture(e.point
 // G84 tapping is intentionally POSITION-ONLY: no misleading thread or tapping feed simulation.
 const cncDrillTest = "N5 G54\n(MET 238 CNC CW3 - ORIGINAL G83/G84 CANNED CYCLES)\nG21 G17 G90 G40 G94\nN10 T7 H7 D7 M6 G43\nN15 G97 S1200 G94 F100 M3\nN20 G0 X-20 Y-20 Z5\nN25 G1 Z-1.7\nN30 G1 Z5\nN35 G0 Y20\nN40 G1 Z-1.7\nN45 G1 Z5\nN50 G0 X20\nN55 G1 Z-1.7\nN60 G1 Z5\nN65 G0 Y-20\nN70 G1 Z-1.7\nN80 G1 Z5\nN85 T4 H4 D4 M6 G43\nN90 S2000 F150 M3\nN95 G0 Z10\nN100 G83 X-20 Y-20 Z-15 R1 Q4 G98\nN105 Y20\nN110 X20\nN115 Y-20\nN120 G80\nN125 T5 H5 D5 M6 G43\nN130 S500 M3\nN135 G0 Z10\nN140 G84 X-20 Y-20 Z-12 F1 R1 G98\nN145 Y20\nN150 X20\nN155 Y-20\nN160 G80\nN165 M30";
 function cncLoadDrillTest(){
- stop();$('source').value=cncDrillTest;
+ stop();$('source').value=cncDrillTest;window.cncFinalizeSemicolons?.(true);
  Object.entries({sx:60,sy:60,sz:15,ox:30,oy:30,oz:0}).forEach(([id,value])=>$(id).value=value);
  $('stockshape').value='rect';window.cncTools.setDrillingTestTools();load();
  $('loadstatus').textContent='MET 238 CW3 loaded. T7 spot-drills, T4 peck-drills (G83), and T5 taps (G84) at 1 mm pitch. Stock top is Z0. The four hole centers are at X and Y ±20 mm.';
@@ -1551,14 +1552,14 @@ function cncLoadSample(kind){
  stop();
  $('stockshape').value='rect';
  if(kind==='face'){
-  $('source').value=demo;
+  $('source').value=demo;window.cncFinalizeSemicolons?.(true);
   Object.entries({sx:60,sy:60,sz:8,ox:0,oy:0,oz:0}).forEach(([id,value])=>$(id).value=value);
   window.cncTools.resetExample();
  }else if(kind==='drill'){
   cncLoadDrillTest();
   return;
  }else if(kind==='sub'){
-  $('source').value=classwork2;
+  $('source').value=classwork2;window.cncFinalizeSemicolons?.(true);
   Object.entries({sx:65,sy:65,sz:22,ox:32.5,oy:32.5,oz:0}).forEach(([id,value])=>$(id).value=value);
   window.cncTools.setClasswork2();
  }else return;
