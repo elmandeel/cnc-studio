@@ -841,8 +841,7 @@ function cncValidateSource(text){
  }
 }
 function cncPrepareProgram(){
- // Keep the current unfinished block editable; only Enter finalizes that block.
- window.cncFinalizeSemicolons?.(false);
+ // Automatic validation must not modify editor text while the user types.
  const config=cncReadSetup(),text=$('source').value;
  cncValidateSource(text);
  window.cncTools.mergeFromDocument('',text);
@@ -6302,12 +6301,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
  }
  window.cncFinalizeSemicolons=apply;
  window.cncCompleteSemicolonLine=completeLine;
- editor.addEventListener('input',event=>{
-   if(event.isComposing)return;
-   if(event.inputType==='insertFromPaste'||event.inputType==='insertFromDrop')apply(true);
-   else if(event.inputType==='insertLineBreak'||event.inputType==='insertParagraph')apply(false);
- });
- editor.addEventListener('compositionend',()=>{if(editor.value.includes('\n'))apply(false);});
+ // Do not finalize on input, paste, IME composition, or automatic preview.
+ // Only the Enter handlers close a manually edited block. Imports and
+ // built-in sample loading may still format complete imported programs.
  // Leaving the editor does not finish the active block: Enter does.
  // Finish the current block before starting the next, with or without N numbering.
  // Capture phase takes priority over the old numbering-only Enter handler.
