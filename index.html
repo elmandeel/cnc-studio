@@ -6276,6 +6276,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    const match=line.match(/^(.*?)(\s*(?:\([^()]*\)\s*)*)$/);
    const code=match?match[1]:line,comments=match?match[2]:'';
    if(!code.trim()||/;\s*$/.test(code))return line;
+   // Never terminate a newly generated N-only line or an incomplete motion
+   // instruction such as N140 G1. Wait until the actual block is written.
+   const body=code.replace(/^\s*\/\s*/,'').replace(/^\s*N\s*\d+\b/i,'').trim();
+   if(!body||/^[Gg]\s*(?:0?[0123])\s*$/.test(body))return line;
+   // Also leave partial address words unfinished until the next edit.
+   if(/(?:^|\s)[A-Za-z]\s*[-+]?\s*$/.test(body))return line;
    return code.replace(/\s*$/,'')+';'+comments;
  }
  function format(text,all){
