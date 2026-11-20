@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v149 · Sequence Number Diagnostics</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v153 · Automatic AI Validation</title>
 <!-- CNC Studio Home Screen icons: approved 3D C, 2026-11-19 r3. -->
 <meta name="application-name" content="CNC Studio">
 <meta name="apple-mobile-web-app-title" content="CNC Studio">
@@ -309,6 +309,25 @@ html[data-cnc-theme="light"] #webgl3{background:#e8f0f8}
 html[data-cnc-theme="light"] .viewport-label{background:rgba(247,251,255,.9);border-color:#b8cada;color:#294963}
 html[data-cnc-theme="light"] .axis-symbol{color:#173b61}
 html[data-cnc-theme="light"] #cnc-program-playback{border-color:#c9d6e3}
+
+/* v153: Optional secure cloud AI G-code reviewer. */
+#cnc-cloud-ai{margin-top:12px}
+#cnc-cloud-ai .body{display:flex;flex-direction:column;gap:10px}
+#cnc-ai-requirements{width:100%;min-height:110px;resize:vertical;font:13px/1.5 system-ui,sans-serif}
+#cnc-ai-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#cnc-ai-run:disabled{opacity:.55;cursor:not-allowed}
+#cnc-ai-status{font-size:12px;color:var(--muted);line-height:1.5}
+#cnc-ai-results{display:grid;gap:8px}
+.cnc-ai-finding{border:1px solid var(--edge);background:var(--pane);border-radius:9px;padding:10px;display:grid;gap:5px}
+.cnc-ai-finding.error{border-left:4px solid #ce4b60}
+.cnc-ai-finding.warning{border-left:4px solid #d8962d}
+.cnc-ai-finding.info{border-left:4px solid #168bbd}
+.cnc-ai-finding strong{font-size:12px}
+.cnc-ai-finding p{margin:0;color:var(--ink);font-size:12px;white-space:pre-wrap}
+.cnc-ai-report-note{font-size:11px;color:var(--muted)}
+#cnc-ai-challenge{min-height:0}
+html[data-cnc-theme="light"] #cnc-cloud-ai{background:#fff;color:#1a3047}
+html[data-cnc-theme="light"] .cnc-ai-finding{background:#f8fbfe;border-color:#c5d5e4}
 </style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">G-code, Word, or PDF document</div><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon">↥</span> Choose File</span><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></label></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button><label class="cnc-sample-label" for="cnc-sample-program" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">Sample Programs
 <select id="cnc-sample-program" aria-label="Sample Programs" style="min-width:190px;max-width:100%;width:auto">
 <option value="" selected>Choose an example…</option>
@@ -6571,6 +6590,165 @@ button.addEventListener('click',()=>{
  try{window.CNCStudioView?.redraw?.();}catch(e){}
  window.dispatchEvent(new Event('resize'));
 });
+})();
+</script>
+
+<script id="cnc-v153-cloud-ai-review">
+(()=>{
+'use strict';
+const right=document.querySelector('.right');
+if(!right)return;
+const panel=document.createElement('section');
+panel.className='panel';
+panel.id='cnc-cloud-ai';
+panel.innerHTML='<div class="hd">✦ Automatic G-code Validation <span class="small">Local + Gemini cloud AI</span></div><div class="body"><label for="cnc-ai-requirements">Assignment requirements</label><textarea id="cnc-ai-requirements" maxlength="7000" placeholder="Enter profile dimensions, operations, tool diameters, required G54 origin, depths and Fanuc 31i programming rules. Code and requirements will be reviewed automatically after you pause typing."></textarea><label class="cnc-ai-auto-option"><input type="checkbox" id="cnc-ai-auto" checked> Automatically review G-code after typing stops</label><div id="cnc-ai-actions"><button class="btn primary" type="button" id="cnc-ai-run" disabled>Review now</button><button class="btn" type="button" id="cnc-ai-clear">Clear report</button></div><div id="cnc-ai-challenge"></div><div id="cnc-ai-status" role="status" aria-live="polite">Local checks run with the simulator. Secure cloud AI is not yet configured.</div><div id="cnc-ai-results" role="region" aria-label="AI validation results"></div><p class="cnc-ai-report-note">Automatic cloud review waits 6 seconds after editing and limits requests to protect free-tier quotas. G-code, assignment requirements, stock, G54 and diagnostics are sent to Google Gemini. Avoid private student data. AI cannot certify machining safety.</p></div>';
+const playback=document.getElementById('cnc-program-playback');
+const diagnostics=document.getElementById('cnc-diagnostics');
+if(playback){playback.after(panel);if(diagnostics)panel.before(diagnostics);}else right.append(panel);
+const $ai=id=>document.getElementById(id);
+const button=$ai('cnc-ai-run'),status=$ai('cnc-ai-status'),results=$ai('cnc-ai-results');
+const editor=document.getElementById('source'),requirements=$ai('cnc-ai-requirements'),auto=$ai('cnc-ai-auto');
+const FOCUS_DELAY=6000,MIN_INTERVAL=30000,MAX_PER_HOUR=12;
+let config=null,widgetId=null,loading=false,timer=0,lastRequest=0,lastSentSignature='',edits=0,activeRevision=0,hourly=[];
+function setStatus(message){status.textContent=message;}
+function addText(parent,tag,value,cls){
+ const el=document.createElement(tag);
+ if(cls)el.className=cls;
+ el.textContent=String(value||'');
+ parent.appendChild(el);return el;
+}
+function reportError(message){results.textContent='';setStatus(message);}
+function signature(){return(editor?.value||'')+'\n---REQUIREMENTS---\n'+requirements.value+'\n---SETUP---\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
+function renderReport(data){
+ results.textContent='';
+ addText(results,'strong',data.summary||'AI review complete');
+ const findings=Array.isArray(data.findings)?data.findings.slice(0,12):[];
+ for(const issue of findings){
+  const kind=['error','warning','info'].includes(issue.severity)?issue.severity:'info';
+  const box=document.createElement('div');box.className='cnc-ai-finding '+kind;
+  addText(box,'strong',(issue.block?issue.block+' · ':'')+(issue.title||'Finding'));
+  addText(box,'p',issue.explanation||'');
+  if(issue.suggestion)addText(box,'p','Suggestion: '+issue.suggestion);
+  results.appendChild(box);
+ }
+ if(!findings.length)addText(results,'p','No findings returned. This does not prove G-code correctness.');
+ if(Array.isArray(data.limitations)&&data.limitations.length)addText(results,'p','Limitations: '+data.limitations.join(' · '),'cnc-ai-report-note');
+ addText(results,'p',data.disclaimer||'AI cannot certify machining safety.','cnc-ai-report-note');
+}
+function loadTurnstile(){
+ return new Promise((resolve,reject)=>{
+  if(window.turnstile){resolve();return;}
+  const script=document.createElement('script');
+  script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  script.async=true;script.defer=true;
+  script.onload=()=>resolve();
+  script.onerror=()=>reject(Error('Human verification could not be loaded.'));
+  document.head.appendChild(script);
+ });
+}
+function schedule(reason='edit',delay=FOCUS_DELAY){
+ edits++;activeRevision++;
+ clearTimeout(timer);timer=0;
+ if(!config||!auto.checked||!editor)return;
+ if(editor.value.trim().length<4||requirements.value.trim().length<8){
+  setStatus('Type G-code and assignment requirements to enable automatic cloud validation.');
+  return;
+ }
+ const extra=Math.max(0,MIN_INTERVAL-(Date.now()-lastRequest));
+ const wait=Math.max(delay,extra);
+ setStatus('Checking automatically after you pause typing' +(extra>delay?' (rate limit cooldown)…':'…'));
+ timer=setTimeout(()=>runReview(false),wait);
+}
+function turnstileReady(){
+ if(!config||!auto.checked||loading)return;
+ if(editor?.value.trim().length<4||requirements.value.trim().length<8)return;
+ schedule('verification',600);
+}
+async function setup(){
+ try{
+  const response=await fetch('./ai-config.json',{cache:'no-store'});
+  if(!response.ok)throw Error('Cloud AI configuration unavailable.');
+  const settings=await response.json();
+  if(settings?.enabled!==true || !/^https:\/\//i.test(settings.endpoint||'') || !settings.turnstileSiteKey){
+   setStatus('Automatic local diagnostics are available. Cloud AI will activate after the administrator deploys the secure Worker and configures ai-config.json.');
+   return;
+  }
+  const url=new URL(settings.endpoint);
+  if(url.username||url.password||url.pathname!=='/validate')throw Error('Invalid AI endpoint configuration.');
+  config={endpoint:settings.endpoint,turnstileSiteKey:settings.turnstileSiteKey};
+  await loadTurnstile();
+  if(!window.turnstile)throw Error('Human verification unavailable.');
+  widgetId=window.turnstile.render('#cnc-ai-challenge',{
+   sitekey:config.turnstileSiteKey,theme:'auto',appearance:'interaction-only',
+   callback:()=>turnstileReady(),
+   'expired-callback':()=>setStatus('Verification expired. Cloud review resumes after a fresh check.')
+  });
+  button.disabled=false;
+  setStatus('Ready: AI checks automatically 6 seconds after editing stops, subject to verification and quota.');
+  // No automatic call on page load; only on actual user edits.
+ }catch(err){setStatus('Cloud AI unavailable: '+err.message);}
+}
+function hourlyAllowed(){
+ const now=Date.now();hourly=hourly.filter(t=>now-t<3600000);
+ return hourly.length<MAX_PER_HOUR;
+}
+async function runReview(manual){
+ if(!config||loading)return;
+ clearTimeout(timer);timer=0;
+ const code=editor?.value||'', rules=requirements.value.trim();
+ if(code.trim().length<4||rules.length<8){setStatus('Enter G-code and assignment requirements first.');return;}
+ const currentSignature=signature();
+ if(!manual && currentSignature===lastSentSignature)return;
+ if(!hourlyAllowed()){setStatus('Cloud AI hourly review limit reached (12/hour). Local diagnostics remain available.');return;}
+ const now=Date.now(),cooldown=MIN_INTERVAL-(now-lastRequest);
+ if(cooldown>0){if(!manual)schedule('cooldown',Math.max(FOCUS_DELAY,cooldown));else setStatus('Cloud AI is cooling down to protect the free tier.');return;}
+ const token=window.turnstile?.getResponse(widgetId);
+ if(!token){setStatus('Waiting for Cloudflare human verification before sending an AI review.');return;}
+ const getValue=id=>document.getElementById(id)?.value||'';
+ const data={
+  code:code.slice(0,24000),requirements:rules.slice(0,7000),turnstileToken:token,
+  setup:{shape:getValue('stockshape'),stockX:getValue('sx'),stockY:getValue('sy'),stockZ:getValue('sz'),g54X:getValue('ox'),g54Y:getValue('oy'),g54Z:getValue('oz')},
+  diagnostics:(document.getElementById('diag-list')?.innerText||'').slice(0,5000)
+ };
+ loading=true;button.disabled=true;results.textContent='';
+ const startedRevision=activeRevision;
+ lastRequest=now;hourly.push(now);lastSentSignature=currentSignature;
+ setStatus('AI review in progress. You can continue editing.');
+ try{
+  const response=await fetch(config.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(33000)});
+  let report;try{report=await response.json();}catch{throw Error('Invalid AI server response.');}
+  if(!response.ok)throw Error(report.error||'Cloud AI unavailable.');
+  if(startedRevision!==activeRevision){
+   setStatus('Program changed during review. Scheduling an updated check.');
+   return;
+  }
+  renderReport(report);setStatus('AI review complete. Edits will trigger another review automatically.');
+ }catch(err){
+  if(startedRevision===activeRevision)reportError('Cloud AI review failed: '+err.message);
+ }finally{
+  loading=false;button.disabled=!config;
+  try{window.turnstile?.reset(widgetId);}catch(e){}
+  // A token is one-time-use; the widget refreshes in the background.
+  if(startedRevision!==activeRevision&&auto.checked)schedule('updated after review',FOCUS_DELAY);
+ }
+}
+$ai('cnc-ai-clear').addEventListener('click',()=>{results.textContent='';setStatus(config?'Ready for another review.':'Cloud AI not yet configured.');});
+button.addEventListener('click',()=>runReview(true));
+auto.addEventListener('change',()=>{
+ clearTimeout(timer);
+ if(auto.checked)schedule('auto enabled',FOCUS_DELAY);
+ else setStatus('Automatic cloud review paused. Local diagnostics remain available.');
+});
+for(const event of ['input','change']){
+ editor?.addEventListener(event,()=>schedule('G-code'));
+ requirements.addEventListener(event,()=>schedule('requirements'));
+}
+for(const id of ['stockshape','sx','sy','sz','ox','oy','oz']){
+ const field=document.getElementById(id);
+ if(!field)continue;
+ field.addEventListener('change',()=>schedule('setup'));
+}
+setup();
 })();
 </script>
 </body></html>
