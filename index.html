@@ -6367,8 +6367,19 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    const current=before.slice(before.lastIndexOf('\n')+1);
    const after=editor.value.slice(end);
    const remainder=after.split('\n',1)[0];
-   // Avoid inserting a second N-number into a split existing block.
-   if(seq.test(remainder))return;
+   // Enter at the beginning of an existing numbered block inserts a new
+   // blank numbered block immediately before it, instead of splitting its N word.
+   if(seq.test(remainder)){
+     if(current.trim())return;
+     const candidate=nextNumber(before,after);
+     if(candidate===null){event.preventDefault();return;}
+     event.preventDefault();
+     editor.setRangeText('N'+candidate+' \n',start,end,'end');
+     // Place the caret on the inserted block, not on the following N line.
+     editor.setSelectionRange(start+('N'+candidate+' ').length,start+('N'+candidate+' ').length);
+     editor.dispatchEvent(new Event('input',{bubbles:true}));
+     return;
+   }
    const next=nextNumber(before,after);
    if(next===null){
      // There is no unused integer between adjacent sequence numbers. Preserve
