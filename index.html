@@ -1621,7 +1621,6 @@ function cncLoadDrillTest(){
  stop();$('source').value=cncDrillTest;window.cncFinalizeSemicolons?.(true);
  Object.entries({sx:60,sy:60,sz:15,ox:30,oy:30,oz:0}).forEach(([id,value])=>$(id).value=value);
  $('stockshape').value='rect';window.cncTools.setDrillingTestTools();load();
- $('loadstatus').textContent='MET 238 CW3 loaded. T7 spot-drills, T4 peck-drills (G83), and T5 taps (G84) at 1 mm pitch. Stock top is Z0. The four hole centers are at X and Y ±20 mm.';
 }
 function cncLoadSample(kind){
  if(!kind)return;
