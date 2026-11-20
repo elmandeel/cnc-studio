@@ -1,5 +1,6 @@
 {
   "enabled": true,
   "endpoint": "https://cnc-studio-ai.elmandeel-cnc.workers.dev/validate",
-  "turnstileSiteKey": "0x4AAAAAAGKinrS_GrPj9NlQ"
+  "turnstileSiteKey": "0x4AAAAAAGKinrS_GrPj9NlQ",
+  "turnstileMode": "invisible"
 }
