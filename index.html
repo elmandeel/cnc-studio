@@ -6298,7 +6298,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
  window.cncCompleteSemicolonLine=completeLine;
  editor.addEventListener('input',event=>{
    if(event.isComposing)return;
-   if(event.inputType==='insertFromPaste'||event.inputType==='insertFromDrop'||event.inputType==='insertLineBreak'||event.inputType==='insertParagraph')apply(false);
+   if(event.inputType==='insertFromPaste'||event.inputType==='insertFromDrop')apply(true);
+   else if(event.inputType==='insertLineBreak'||event.inputType==='insertParagraph')apply(false);
  });
  editor.addEventListener('compositionend',()=>{if(editor.value.includes('\n'))apply(false);});
  editor.addEventListener('blur',()=>apply(true));
