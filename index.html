@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v154 · Automatic AI Validation</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNC Studio v155 · Unified Automatic Validation</title>
 <!-- CNC Studio Home Screen icons: approved 3D C, 2026-11-19 r3. -->
 <meta name="application-name" content="CNC Studio">
 <meta name="apple-mobile-web-app-title" content="CNC Studio">
@@ -339,6 +339,38 @@ html[data-cnc-theme="light"] .cnc-ai-finding{background:#f8fbfe;border-color:#c5
 #cnc-cloud-ai.cnc-ai-inline .cnc-ai-auto-option input{width:auto;flex:none}
 html[data-cnc-theme="light"] #cnc-cloud-ai.cnc-ai-inline{background:#fff;border-color:#c7d5e2}
 @media(max-width:820px){#cnc-cloud-ai.cnc-ai-inline>.hd{font-size:12px}#cnc-cloud-ai.cnc-ai-inline #cnc-ai-requirements{font-size:16px}}
+
+/* v155: unified local + cloud AI validation, replacing the separate panel. */
+#cnc-unified-validation{background:#132f37;border:1px solid #325a66;border-radius:8px;margin-top:10px;padding:12px;color:#d9f1ee;display:flex;flex-direction:column;gap:10px;min-width:0}
+#cnc-unified-validation #cnc-auto-status{margin:0!important;padding:5px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:inherit!important}
+#cnc-unified-validation .cnc-validation-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#cnc-unified-validation .cnc-validation-heading strong{font-size:13px}
+#cnc-unified-validation .cnc-validation-mode{font-size:10px;opacity:.8}
+#cnc-unified-validation .cnc-validation-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#cnc-unified-validation .cnc-validation-auto{display:flex;flex-direction:row;align-items:center;gap:6px;font-size:12px;color:inherit}
+#cnc-unified-validation .cnc-validation-auto input{width:auto}
+#cnc-unified-validation .cnc-validation-controls button{font-size:11px;padding:6px 9px}
+#cnc-unified-validation .cnc-validation-group{border-top:1px solid #426b6f;padding-top:9px;display:grid;gap:7px;min-width:0}
+#cnc-unified-validation .cnc-validation-subheading{font-size:12px;font-weight:700}
+#cnc-unified-validation #cnc-local-summary,#cnc-unified-validation #cnc-cloud-status{font-size:12px;line-height:1.45}
+#cnc-unified-validation #cnc-local-summary[data-kind="error"]{color:#ffc6c6}
+#cnc-unified-validation #cnc-local-summary[data-kind="warning"]{color:#ffdfa7}
+#cnc-unified-validation #cnc-local-results,#cnc-unified-validation #cnc-cloud-results{display:grid;gap:6px;max-height:290px;overflow:auto}
+#cnc-unified-validation .cnc-validation-issue{display:grid;gap:3px;padding:7px 9px;border:1px solid #54777a;border-left:3px solid #5ba4d5;border-radius:6px;background:#183741;font-size:12px}
+#cnc-unified-validation .cnc-validation-issue.error{border-left-color:#ff7878}
+#cnc-unified-validation .cnc-validation-issue.warning{border-left-color:#ffd178}
+#cnc-unified-validation .cnc-validation-issue strong{font-size:11px}
+#cnc-unified-validation #cnc-validation-requirements summary{font-size:11px;cursor:pointer;user-select:none}
+#cnc-unified-validation #cnc-unified-rules{width:100%;height:100px;min-height:75px;margin-top:7px;resize:vertical;font-size:12px;background:#102b38;color:#e4f4f8;border:1px solid #64848a}
+#cnc-unified-validation .cnc-validation-note{margin:0;color:#b9d1ce;font-size:10px;line-height:1.5}
+html[data-cnc-theme="light"] #cnc-unified-validation{background:#e0f3ee;color:#185b4d;border-color:#9ed6c3}
+html[data-cnc-theme="light"] #cnc-unified-validation #cnc-auto-status{color:#185b4d!important}
+html[data-cnc-theme="light"] #cnc-unified-validation .cnc-validation-group{border-color:#a4d5cb}
+html[data-cnc-theme="light"] #cnc-unified-validation .cnc-validation-issue{background:#f6fdfb;color:#234b46;border-color:#bad6d0}
+html[data-cnc-theme="light"] #cnc-unified-validation .cnc-validation-note{color:#436d63}
+html[data-cnc-theme="light"] #cnc-unified-validation #cnc-unified-rules{background:#fff;color:#19374f;border-color:#a4c2bb}
+html[data-cnc-theme="light"] #cnc-unified-validation #cnc-local-summary[data-kind="error"]{color:#a82031}
+html[data-cnc-theme="light"] #cnc-unified-validation #cnc-local-summary[data-kind="warning"]{color:#8b5414}
 </style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">G-code, Word, or PDF document</div><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon">↥</span> Choose File</span><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></label></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button><label class="cnc-sample-label" for="cnc-sample-program" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">Sample Programs
 <select id="cnc-sample-program" aria-label="Sample Programs" style="min-width:190px;max-width:100%;width:auto">
 <option value="" selected>Choose an example…</option>
@@ -6604,165 +6636,209 @@ button.addEventListener('click',()=>{
 })();
 </script>
 
-<script id="cnc-v153-cloud-ai-review">
+<script id="cnc-v155-unified-validation">
 (()=>{
 'use strict';
-const sampleSelector=document.getElementById('cnc-sample-program');
-if(!sampleSelector)return;
-const panel=document.createElement('section');
-panel.className='cnc-ai-inline';
-panel.id='cnc-cloud-ai';
-panel.innerHTML='<div class="hd">✦ Automatic G-code Validation <span class="small">Local + Gemini cloud AI</span></div><div class="body"><label for="cnc-ai-requirements">Assignment requirements</label><textarea id="cnc-ai-requirements" maxlength="7000" placeholder="Enter profile dimensions, operations, tool diameters, required G54 origin, depths and Fanuc 31i programming rules. Code and requirements will be reviewed automatically after you pause typing."></textarea><label class="cnc-ai-auto-option"><input type="checkbox" id="cnc-ai-auto" checked> Automatically review G-code after typing stops</label><div id="cnc-ai-actions"><button class="btn primary" type="button" id="cnc-ai-run" disabled>Review now</button><button class="btn" type="button" id="cnc-ai-clear">Clear report</button></div><div id="cnc-ai-challenge"></div><div id="cnc-ai-status" role="status" aria-live="polite">Local checks run with the simulator. Secure cloud AI is not yet configured.</div><div id="cnc-ai-results" role="region" aria-label="AI validation results"></div><p class="cnc-ai-report-note">Automatic cloud review waits 6 seconds after editing and limits requests to protect free-tier quotas. G-code, assignment requirements, stock, G54 and diagnostics are sent to Google Gemini. Avoid private student data. AI cannot certify machining safety.</p></div>';
-const sampleRow=sampleSelector.closest('.buttons');
-if(!sampleRow)return;
-sampleRow.after(panel);
-const $ai=id=>document.getElementById(id);
-const button=$ai('cnc-ai-run'),status=$ai('cnc-ai-status'),results=$ai('cnc-ai-results');
-const editor=document.getElementById('source'),requirements=$ai('cnc-ai-requirements'),auto=$ai('cnc-ai-auto');
-requirements.value='Review this Fanuc 31i milling G-code for syntax, supported commands, modal logic, tool and spindle use, G54/G52 offsets, feed rates, cutter compensation, arc definitions, subprograms, and potentially unsafe moves. Use supplied machine setup and local diagnostics. Cite original N/O blocks. Do not assume missing tool dimensions, work origin, or assignment geometry. Treat findings as advisory.';
+// The simulator's existing editor is the only source of G-code: never ask students to paste it again.
+const editor=document.getElementById('source');
+const preview=document.getElementById('cnc-auto-status');
+if(!editor||!preview)return;
+const zone=document.createElement('section');
+zone.id='cnc-unified-validation';
+zone.setAttribute('aria-label','Automatic G-code validation');
+preview.before(zone);
+const head=document.createElement('div');
+head.className='cnc-validation-heading';
+const title=document.createElement('strong');title.textContent='✦ Automatic G-code Validation';
+const badge=document.createElement('span');badge.className='cnc-validation-mode';badge.textContent='Rule-based + Cloud AI';
+head.append(title,badge);
+zone.append(head,preview);
+const controls=document.createElement('div');
+controls.className='cnc-validation-controls';
+controls.innerHTML='<label class="cnc-validation-auto"><input id="cnc-unified-auto" type="checkbox" checked> AI review automatically</label><button class="btn" id="cnc-unified-review" type="button" disabled>Review now</button>';
+zone.append(controls);
+const local=document.createElement('div');local.className='cnc-validation-group';
+const localTitle=document.createElement('div');localTitle.className='cnc-validation-subheading';
+localTitle.textContent='Rule-based syntax & simulator diagnostics';
+const localSummary=document.createElement('div');localSummary.id='cnc-local-summary';localSummary.setAttribute('role','status');
+const localList=document.createElement('div');localList.id='cnc-local-results';
+local.append(localTitle,localSummary,localList);zone.append(local);
+const cloud=document.createElement('div');cloud.className='cnc-validation-group';
+const cloudTitle=document.createElement('div');cloudTitle.className='cnc-validation-subheading';cloudTitle.textContent='Cloud AI · Fanuc 31i review';
+const cloudStatus=document.createElement('div');cloudStatus.id='cnc-cloud-status';cloudStatus.setAttribute('role','status');cloudStatus.setAttribute('aria-live','polite');
+const cloudResults=document.createElement('div');cloudResults.id='cnc-cloud-results';
+const challenge=document.createElement('div');challenge.id='cnc-ai-challenge';
+const rulesDetails=document.createElement('details');rulesDetails.id='cnc-validation-requirements';
+const rulesSummary=document.createElement('summary');rulesSummary.textContent='Optional: customize assignment requirements';
+const rules=document.createElement('textarea');rules.id='cnc-unified-rules';rules.setAttribute('aria-label','Additional assignment requirements');rules.maxLength=7000;rules.placeholder='Optional: e.g., required G54 origin, drawing profile, depths, specific tools and your coding rubric. Code is read automatically from the editor above.';
+rulesDetails.append(rulesSummary,rules);
+const note=document.createElement('p');note.className='cnc-validation-note';
+note.textContent='Automatic checks read the loaded and edited program above. Cloud review sends G-code, setup and validation context to Gemini; avoid private student information. AI does not certify machine safety.';
+cloud.append(cloudTitle,cloudStatus,challenge,cloudResults,rulesDetails,note);zone.append(cloud);
+
+const button=document.getElementById('cnc-unified-review');
+const automatic=document.getElementById('cnc-unified-auto');
 const FOCUS_DELAY=6000,MIN_INTERVAL=30000,MAX_PER_HOUR=12;
-let config=null,widgetId=null,loading=false,timer=0,lastRequest=0,lastSentSignature='',edits=0,activeRevision=0,hourly=[];
-function setStatus(message){status.textContent=message;}
-function addText(parent,tag,value,cls){
- const el=document.createElement(tag);
- if(cls)el.className=cls;
- el.textContent=String(value||'');
- parent.appendChild(el);return el;
+const DEFAULT_RULES='Review this Fanuc 31i milling G-code for numeric syntax, unknown/unsupported addresses or G/M commands, modal G90/G91, G20/G21, G54/G52/G53 handling, tools, feed, spindle, G00-G03 arcs, offsets, cutter compensation, canned cycles, M98/M99 subprogram use, and potentially unsafe moves. Use supplied stock and G54 fields and local diagnostics. Cite original N and O identifiers. Do not assume unspecified drawing geometry, tools or work origin; report uncertainty. The educational MET 238 coding convention uses N numbers in increments of 5, semicolon-terminated blocks, concise blocks, G54, and appropriate tool offsets. Never certify machine safety.';
+const WORD=/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g;
+const ALLOWED=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
+const KNOWN_G=new Set([0,1,2,3,4,17,18,19,20,21,28,40,41,42,43,49,52,53,54,55,56,57,58,59,73,74,76,80,81,82,83,84,85,86,87,88,89,90,91,94,95,97,98,99]);
+const KNOWN_M=new Set([0,1,2,3,4,5,6,7,8,9,30,98,99]);
+let loadedText=null,config=null,widgetId=null,loading=false,localTimer=0,cloudTimer=0,lastCloudAt=0,lastSent='',revision=0,hourly=[];
+function say(message){cloudStatus.textContent=message;}
+function add(parent,tag,value,cls){const n=document.createElement(tag);n.textContent=String(value??'');if(cls)n.className=cls;parent.appendChild(n);return n;}
+function issuesForDraft(){
+ const rows=editor.value.split(/\r?\n/),issues=[];let currentProgram='',previousN=null;
+ function report(severity,row,text,explanation){if(issues.length>=30)return;issues.push({severity,row,text,explanation});}
+ rows.forEach((raw,i)=>{
+  const line=raw.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim().replace(/^\/\s*/,'');
+  if(!line||line==='%')return;
+  const header=/^O\s*(\d+)\s*$/i.exec(line);
+  if(header){currentProgram='O'+Number(header[1]);previousN=null;return;}
+  const words=[...line.matchAll(WORD)];
+  const remainder=line.replace(WORD,'').replace(/\s+/g,'');
+  const lastIncomplete=i===rows.length-1&&!raw.trim().endsWith(';')&&remainder&&/^[A-Za-z+\-.0-9]*$/.test(remainder);
+  const nToken=words.find(w=>w[1].toUpperCase()==='N');
+  const seq=nToken?'N'+nToken[2]:null;
+  const at=(currentProgram?currentProgram+' · ':'')+(seq||'line '+(i+1));
+  if(remainder&&!lastIncomplete)report('error',i+1,at,'Incomplete or unrecognized token: '+remainder.slice(0,35));
+  else if(lastIncomplete)report('info',i+1,at,'Current line is incomplete; validation will continue as you type.');
+  if(nToken){const num=Number(nToken[2]);if(previousN!==null&&num!==previousN+5)report('warning',i+1,at,'N sequence is not in increments of 5.');previousN=num;}
+  for(const w of words){
+   const letter=w[1].toUpperCase(),value=Number(w[2]);
+   if(!ALLOWED.has(letter))report('error',i+1,at,'Unsupported address '+letter+'.');
+   if(letter==='F'&&value<0)report('error',i+1,at,'Negative feed F'+value+'.');
+   if(letter==='S'&&value<0)report('error',i+1,at,'Negative spindle speed S'+value+'.');
+   if(letter==='G'&&!KNOWN_G.has(value))report('warning',i+1,at,'G'+value+' is not in the validator reference set; check controller support.');
+   if(letter==='M'&&!KNOWN_M.has(value))report('warning',i+1,at,'M'+value+' may require controller-specific verification.');
+  }
+  const g=words.filter(w=>w[1].toUpperCase()==='G').map(w=>Number(w[2]));
+  if(g.includes(90)&&g.includes(91))report('error',i+1,at,'Conflicting G90 and G91 in one block.');
+  if(g.includes(20)&&g.includes(21))report('error',i+1,at,'Conflicting G20 and G21 in one block.');
+  if(g.includes(52)&&g.includes(53))report('error',i+1,at,'Conflicting G52 and G53 in one block.');
+ });
+ return issues;
 }
-function reportError(message){results.textContent='';setStatus(message);}
-function signature(){return(editor?.value||'')+'\n---REQUIREMENTS---\n'+requirements.value+'\n---SETUP---\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
-function renderReport(data){
- results.textContent='';
- addText(results,'strong',data.summary||'AI review complete');
- const findings=Array.isArray(data.findings)?data.findings.slice(0,12):[];
- for(const issue of findings){
-  const kind=['error','warning','info'].includes(issue.severity)?issue.severity:'info';
-  const box=document.createElement('div');box.className='cnc-ai-finding '+kind;
-  addText(box,'strong',(issue.block?issue.block+' · ':'')+(issue.title||'Finding'));
-  addText(box,'p',issue.explanation||'');
-  if(issue.suggestion)addText(box,'p','Suggestion: '+issue.suggestion);
-  results.appendChild(box);
+function displayLocal(){
+ const problems=issuesForDraft();
+ localList.replaceChildren();
+ const errors=problems.filter(x=>x.severity==='error').length;
+ const warnings=problems.filter(x=>x.severity==='warning').length;
+ const actual=loadedText===editor.value&&typeof cncIssues!=='undefined'&&Array.isArray(cncIssues)?cncIssues:[];
+ const unique=[];
+ for(const d of actual.slice(0,15)){
+  if(d.type!=='error'&&d.type!=='collision')continue;
+  unique.push({severity:d.type==='collision'?'warning':'error',text:typeof cncBlockLabel==='function'?cncBlockLabel(d.location):'Loaded program',explanation:d.message});
  }
- if(!findings.length)addText(results,'p','No findings returned. This does not prove G-code correctness.');
- if(Array.isArray(data.limitations)&&data.limitations.length)addText(results,'p','Limitations: '+data.limitations.join(' · '),'cnc-ai-report-note');
- addText(results,'p',data.disclaimer||'AI cannot certify machining safety.','cnc-ai-report-note');
+ const count=errors+warnings+unique.length;
+ localSummary.textContent=count?errors+' syntax error(s), '+warnings+' warning(s), '+unique.length+' simulation finding(s).':'✓ No issues found by current rule checks (not a safety certification).';
+ localSummary.dataset.kind=errors?'error':count?'warning':'ok';
+ for(const p of [...problems,...unique].slice(0,12)){
+  const entry=document.createElement('div');entry.className='cnc-validation-issue '+p.severity;
+  add(entry,'strong',p.text);
+  add(entry,'span',p.explanation);
+  localList.append(entry);
+ }
+ if(problems.length+unique.length>12)add(localList,'span','More findings may be available in full program diagnostics.');
+}
+function payloadSignature(){return editor.value+'\n'+rules.value+'\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
+function reviewAfter(reason='edit',delay=FOCUS_DELAY){
+ revision++;
+ clearTimeout(localTimer);clearTimeout(cloudTimer);
+ localTimer=setTimeout(displayLocal,reason==='edit'?160:0);
+ if(!config||!automatic.checked||editor.value.trim().length<4)return;
+ const cooldown=Math.max(0,MIN_INTERVAL-(Date.now()-lastCloudAt));
+ const wait=Math.max(delay,cooldown);
+ say('Automatic review scheduled'+(cooldown>delay?' after cloud quota cooldown.':' after typing stops.'));
+ cloudTimer=setTimeout(()=>review(false),wait);
+}
+function showAI(report){
+ cloudResults.replaceChildren();
+ add(cloudResults,'strong',report.summary||'Cloud review complete');
+ for(const finding of (Array.isArray(report.findings)?report.findings:[]).slice(0,12)){
+  const div=document.createElement('div');div.className='cnc-validation-issue '+(['error','warning'].includes(finding.severity)?finding.severity:'info');
+  add(div,'strong',(finding.block?finding.block+' · ':'')+(finding.title||'Finding'));
+  add(div,'span',finding.explanation||'');
+  if(finding.suggestion)add(div,'span','Suggestion: '+finding.suggestion);
+  cloudResults.append(div);
+ }
+ if(Array.isArray(report.limitations)&&report.limitations.length)add(cloudResults,'span','Limitations: '+report.limitations.join(' · '),'cnc-validation-note');
 }
 function loadTurnstile(){
  return new Promise((resolve,reject)=>{
-  if(window.turnstile){resolve();return;}
-  const script=document.createElement('script');
-  script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  script.async=true;script.defer=true;
-  script.onload=()=>resolve();
-  script.onerror=()=>reject(Error('Human verification could not be loaded.'));
-  document.head.appendChild(script);
+  if(window.turnstile)return resolve();
+  const tag=document.createElement('script');tag.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  tag.async=true;tag.defer=true;tag.onload=resolve;tag.onerror=()=>reject(Error('Cloudflare verification script failed.'));
+  document.head.append(tag);
  });
 }
-function schedule(reason='edit',delay=FOCUS_DELAY){
- edits++;activeRevision++;
- clearTimeout(timer);timer=0;
- if(!config||!auto.checked||!editor)return;
- if(editor.value.trim().length<4||requirements.value.trim().length<8){
-  setStatus('Type G-code and assignment requirements to enable automatic cloud validation.');
-  return;
- }
- const extra=Math.max(0,MIN_INTERVAL-(Date.now()-lastRequest));
- const wait=Math.max(delay,extra);
- setStatus('Checking automatically after you pause typing' +(extra>delay?' (rate limit cooldown)…':'…'));
- timer=setTimeout(()=>runReview(false),wait);
-}
-function turnstileReady(){
- if(!config||!auto.checked||loading)return;
- if(editor?.value.trim().length<4||requirements.value.trim().length<8)return;
- schedule('verification',600);
-}
-async function setup(){
+async function configure(){
  try{
-  const response=await fetch('./ai-config.json',{cache:'no-store'});
-  if(!response.ok)throw Error('Cloud AI configuration unavailable.');
-  const settings=await response.json();
-  if(settings?.enabled!==true || !/^https:\/\//i.test(settings.endpoint||'') || !settings.turnstileSiteKey){
-   setStatus('Automatic local diagnostics are available. Cloud AI will activate after the administrator deploys the secure Worker and configures ai-config.json.');
-   return;
-  }
-  const url=new URL(settings.endpoint);
-  if(url.username||url.password||url.pathname!=='/validate')throw Error('Invalid AI endpoint configuration.');
-  config={endpoint:settings.endpoint,turnstileSiteKey:settings.turnstileSiteKey};
+  const r=await fetch('./ai-config.json',{cache:'no-store'});if(!r.ok)throw Error('Configuration unavailable.');
+  const cfg=await r.json();
+  if(cfg.enabled!==true||!/^https:\/\//.test(cfg.endpoint||'')||!cfg.turnstileSiteKey){say('Cloud AI is not configured; local rule-based checking is active.');return;}
+  const u=new URL(cfg.endpoint);
+  if(u.username||u.password||u.pathname!=='/validate')throw Error('Invalid Worker endpoint.');
+  config={endpoint:cfg.endpoint,siteKey:cfg.turnstileSiteKey};
   await loadTurnstile();
-  if(!window.turnstile)throw Error('Human verification unavailable.');
-  widgetId=window.turnstile.render('#cnc-ai-challenge',{
-   sitekey:config.turnstileSiteKey,theme:'auto',appearance:'interaction-only',
-   callback:()=>turnstileReady(),
-   'expired-callback':()=>setStatus('Verification expired. Cloud review resumes after a fresh check.')
-  });
+  widgetId=window.turnstile.render(challenge,{sitekey:config.siteKey,theme:'auto',appearance:'interaction-only',
+    callback:()=>{if(automatic.checked&&editor.value.trim())reviewAfter('verified',600);},
+    'expired-callback':()=>say('Verification expired; complete a new challenge if prompted.')});
   button.disabled=false;
-  setStatus('Ready: AI checks automatically 6 seconds after editing stops, subject to verification and quota.');
-  // Also review the current program automatically after opening CNC Studio.
-  if(auto.checked && editor?.value.trim())schedule('initial program',FOCUS_DELAY);
- }catch(err){setStatus('Cloud AI unavailable: '+err.message);}
+  say('Cloud AI connected. Loaded programs and new edits are reviewed automatically, subject to verification and rate limits.');
+  reviewAfter('initial load');
+ }catch(e){say('Cloud AI unavailable: '+e.message);}
 }
-function hourlyAllowed(){
- const now=Date.now();hourly=hourly.filter(t=>now-t<3600000);
- return hourly.length<MAX_PER_HOUR;
-}
-async function runReview(manual){
+async function review(manual){
  if(!config||loading)return;
- clearTimeout(timer);timer=0;
- const code=editor?.value||'', rules=requirements.value.trim();
- if(code.trim().length<4||rules.length<8){setStatus('Enter G-code and assignment requirements first.');return;}
- const currentSignature=signature();
- if(!manual && currentSignature===lastSentSignature)return;
- if(!hourlyAllowed()){setStatus('Cloud AI hourly review limit reached (12/hour). Local diagnostics remain available.');return;}
- const now=Date.now(),cooldown=MIN_INTERVAL-(now-lastRequest);
- if(cooldown>0){if(!manual)schedule('cooldown',Math.max(FOCUS_DELAY,cooldown));else setStatus('Cloud AI is cooling down to protect the free tier.');return;}
+ clearTimeout(cloudTimer);
+ if(editor.value.trim().length<4)return;
+ const sig=payloadSignature();
+ if(!manual&&sig===lastSent)return;
+ const now=Date.now();
+ hourly=hourly.filter(t=>now-t<3600000);
+ if(hourly.length>=MAX_PER_HOUR){say('Cloud quota: maximum 12 reviews this hour. Local rule checks remain active.');return;}
+ if(now-lastCloudAt<MIN_INTERVAL){if(!manual)reviewAfter('cooldown',MIN_INTERVAL-(now-lastCloudAt));return;}
  const token=window.turnstile?.getResponse(widgetId);
- if(!token){setStatus('Waiting for Cloudflare human verification before sending an AI review.');return;}
- const getValue=id=>document.getElementById(id)?.value||'';
+ if(!token){say('Cloud AI waiting for Cloudflare verification. Local rule checks remain active.');return;}
+ const val=id=>document.getElementById(id)?.value||'';
  const data={
-  code:code.slice(0,24000),requirements:rules.slice(0,7000),turnstileToken:token,
-  setup:{shape:getValue('stockshape'),stockX:getValue('sx'),stockY:getValue('sy'),stockZ:getValue('sz'),g54X:getValue('ox'),g54Y:getValue('oy'),g54Z:getValue('oz')},
-  diagnostics:(document.getElementById('diag-list')?.innerText||'').slice(0,5000)
+  code:editor.value.slice(0,24000),
+  requirements:(DEFAULT_RULES+'\n'+rules.value.trim()).slice(0,7000),turnstileToken:token,
+  setup:{shape:val('stockshape'),stockX:val('sx'),stockY:val('sy'),stockZ:val('sz'),g54X:val('ox'),g54Y:val('oy'),g54Z:val('oz')},
+  diagnostics:(document.getElementById('diag-list')?.innerText||localSummary.textContent).slice(0,5000)
  };
- loading=true;button.disabled=true;results.textContent='';
- const startedRevision=activeRevision;
- lastRequest=now;hourly.push(now);lastSentSignature=currentSignature;
- setStatus('AI review in progress. You can continue editing.');
+ loading=true;button.disabled=true;lastCloudAt=now;hourly.push(now);lastSent=sig;
+ const rev=revision;
+ say('Gemini reviewing the current G-code…');cloudResults.replaceChildren();
  try{
-  const response=await fetch(config.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(33000)});
-  let report;try{report=await response.json();}catch{throw Error('Invalid AI server response.');}
-  if(!response.ok)throw Error(report.error||'Cloud AI unavailable.');
-  if(startedRevision!==activeRevision){
-   setStatus('Program changed during review. Scheduling an updated check.');
-   return;
-  }
-  renderReport(report);setStatus('AI review complete. Edits will trigger another review automatically.');
- }catch(err){
-  if(startedRevision===activeRevision)reportError('Cloud AI review failed: '+err.message);
- }finally{
+  const res=await fetch(config.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(33000)});
+  const body=await res.json().catch(()=>({error:'Unreadable Worker response.'}));
+  if(!res.ok)throw Error(body.error||'Cloud service unavailable.');
+  if(rev!==revision){say('Code changed during the review; the next automatic check will use the new program.');return;}
+  showAI(body);say('AI review complete. Edit or load G-code for an updated review.');
+ }catch(e){if(rev===revision)say('Cloud AI: '+e.message);}
+ finally{
   loading=false;button.disabled=!config;
   try{window.turnstile?.reset(widgetId);}catch(e){}
-  // A token is one-time-use; the widget refreshes in the background.
-  if(startedRevision!==activeRevision&&auto.checked)schedule('updated after review',FOCUS_DELAY);
+  if(rev!==revision&&automatic.checked)reviewAfter('changed during review');
  }
 }
-$ai('cnc-ai-clear').addEventListener('click',()=>{results.textContent='';setStatus(config?'Ready for another review.':'Cloud AI not yet configured.');});
-button.addEventListener('click',()=>runReview(true));
-auto.addEventListener('change',()=>{
- clearTimeout(timer);
- if(auto.checked)schedule('auto enabled',FOCUS_DELAY);
- else setStatus('Automatic cloud review paused. Local diagnostics remain available.');
-});
-document.addEventListener('cnc-program-loaded',()=>schedule('loaded program',FOCUS_DELAY));
-for(const event of ['input','change']){
- editor?.addEventListener(event,()=>schedule('G-code'));
- requirements.addEventListener(event,()=>schedule('requirements'));
-}
+editor.addEventListener('input',()=>reviewAfter('edit'));
+editor.addEventListener('change',()=>reviewAfter('edit'));
+document.addEventListener('cnc-program-loaded',()=>{loadedText=editor.value;reviewAfter('loaded');});
+document.addEventListener('cnc-project-updated',()=>{loadedText=editor.value;reviewAfter('updated');});
 for(const id of ['stockshape','sx','sy','sz','ox','oy','oz']){
- const field=document.getElementById(id);
- if(!field)continue;
- field.addEventListener('change',()=>schedule('setup'));
+ document.getElementById(id)?.addEventListener('change',()=>reviewAfter('setup'));
 }
-setup();
+rules.addEventListener('input',()=>reviewAfter('requirements'));
+automatic.addEventListener('change',()=>{
+ if(automatic.checked)reviewAfter('enabled');
+ else{clearTimeout(cloudTimer);say('Cloud automatic review paused. Live rule-based checks remain active.');}
+});
+button.addEventListener('click',()=>review(true));
+// Loaded sample already exists on initial render; display local errors immediately.
+loadedText=editor.value;displayLocal();configure();
 })();
 </script>
 </body></html>
