@@ -6338,13 +6338,19 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
  if(!editor||!enabled)return;
  // Only manual keystrokes are numbered. File imports and pasted programs stay intact.
  const seq=/^\s*N(\d+)\b/i;
- function nextNumber(before){
-   const rows=before.split(/\r?\n/);
-   for(let i=rows.length-1;i>=0;i--){
-     const match=rows[i].match(seq);
-     if(match)return Math.floor(Number(match[1])/5)*5+5;
+ function nextNumber(before,after){
+   const previous=[...before.matchAll(/^\s*N(\d+)\b/gim)];
+   const last=previous.length?Number(previous[previous.length-1][1]):0;
+   // When inserting between existing blocks, fill the gap one number at a time.
+   const upcoming=after.match(/(?:^|\n)\s*N(\d+)\b/i);
+   if(upcoming){
+     const upper=Number(upcoming[1]);
+     const candidate=last+1;
+     // Never duplicate an existing N number if the gap has been exhausted.
+     return candidate<upper?candidate:null;
    }
-   return 5;
+   // Continue normal MET 238 numbering by 5 when appending to the program.
+   return Math.floor(last/5)*5+5;
  }
  editor.addEventListener('beforeinput',event=>{
    if(!enabled.checked||event.isComposing||event.inputType!=='insertText')return;
@@ -6363,7 +6369,15 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    const remainder=after.split('\n',1)[0];
    // Avoid inserting a second N-number into a split existing block.
    if(seq.test(remainder))return;
-   const next=nextNumber(before);
+   const next=nextNumber(before,after);
+   if(next===null){
+     // There is no unused integer between adjacent sequence numbers. Preserve
+     // existing N labels and do not silently renumber referenced blocks.
+     const status=document.getElementById('loadstatus');
+     if(status)status.textContent='No free N number between these blocks. Renumber the surrounding blocks to create a gap.';
+     event.preventDefault();
+     return;
+   }
    // An empty editor begins with N5; otherwise Enter starts the next block.
    const completed=window.cncCompleteSemicolonLine?window.cncCompleteSemicolonLine(current+remainder):null;
    const insert='\nN'+next+' ';
