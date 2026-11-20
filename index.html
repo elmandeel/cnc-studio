@@ -1603,32 +1603,35 @@ cncLoadDrillTest();
     // Toolpath-only 2D mode: intentionally no stock rasterization or cut simulation.
     const {W,H,scale,ox,oy,pixelRatio}=cnc2DProjection();
     const X=x=>ox+x*scale, Y=y=>H-oy-y*scale;
-    g2.fillStyle='#102033';g2.fillRect(0,0,W,H);
-    if(showGrid2){g2.strokeStyle='rgba(180,210,230,.12)';g2.lineWidth=1;
+    const light=document.documentElement.dataset.cncTheme==='light';
+    g2.fillStyle=light?'#f5f9fd':'#102033';g2.fillRect(0,0,W,H);
+    if(showGrid2){g2.strokeStyle=light?'rgba(65,94,122,.24)':'rgba(180,210,230,.12)';g2.lineWidth=1;
       const step=Math.max(1,Math.pow(10,Math.floor(Math.log10(Math.max(stock.x,stock.y)/8))));
       for(let x=0;x<=stock.x;x+=step){g2.beginPath();g2.moveTo(X(x),0);g2.lineTo(X(x),H);g2.stroke();}
       for(let y=0;y<=stock.y;y+=step){g2.beginPath();g2.moveTo(0,Y(y));g2.lineTo(W,Y(y));g2.stroke();}}
-    g2.strokeStyle='#8294a8';g2.lineWidth=1.5;
-    if(stock.shape==='cylinder'){g2.beginPath();g2.arc(X(stock.x/2),Y(stock.y/2),stock.x*scale/2,0,Math.PI*2);g2.stroke();}
-    else g2.strokeRect(X(0),Y(stock.y),stock.x*scale,stock.y*scale);
-    const palette=['#f3a94c','#46d4ef','#ba78ed','#e47b8a','#8ce59b','#f0d067'];
+    // Subtle material fill and a strong outline against the light XY workspace.
+    g2.fillStyle=light?'#d9e3ec':'transparent';
+    g2.strokeStyle=light?'#344f67':'#8294a8';g2.lineWidth=light?2.5:1.5;
+    if(stock.shape==='cylinder'){g2.beginPath();g2.arc(X(stock.x/2),Y(stock.y/2),stock.x*scale/2,0,Math.PI*2);if(light)g2.fill();g2.stroke();}
+    else{if(light)g2.fillRect(X(0),Y(stock.y),stock.x*scale,stock.y*scale);g2.strokeRect(X(0),Y(stock.y),stock.x*scale,stock.y*scale);}
+    const palette=light?['#a65b00','#0076a8','#713bad','#b82c54','#117947','#8f6400']:['#f3a94c','#46d4ef','#ba78ed','#e47b8a','#8ce59b','#f0d067'];
     // Limit per-frame path drawing without changing toolpath geometry.
     for(let i=0;i<Math.min(n,steps.length);i++){
       const e=steps[i];if(!e.hasMove)continue;
       let segs=cnc2DPathCache.get(e);if(!segs){segs=segments(e);cnc2DPathCache.set(e,segs);}if(!segs.length)continue;
       const tool=e.after?.tool||0;
-      g2.strokeStyle=e.mode===0?'rgba(158,179,205,.45)':palette[Math.abs(tool)%palette.length];
-      g2.lineWidth=e.mode===0?1:1.8;g2.setLineDash(e.mode===0?[5,5]:[]);
+      g2.strokeStyle=e.mode===0?(light?'rgba(59,82,104,.85)':'rgba(158,179,205,.45)'):palette[Math.abs(tool)%palette.length];
+      g2.lineWidth=e.mode===0?(light?1.5:1):(light?2.5:1.8);g2.setLineDash(e.mode===0?[5,5]:[]);
       g2.beginPath();const count=i===n-1?Math.ceil(segs.length*f):segs.length;
       const stride=Math.max(1,Math.ceil(count/1500));
       for(let j=0;j<count;j+=stride){const a=segs[j][0],b=segs[Math.min(count-1,j+stride-1)][1];g2.moveTo(X(a.x),Y(a.y));g2.lineTo(X(b.x),Y(b.y));}
       g2.stroke();
     }
     g2.setLineDash([]);
-    const gx=X(origin.x),gy=Y(origin.y);g2.strokeStyle='#ffb5d7';g2.lineWidth=1.3;
+    const gx=X(origin.x),gy=Y(origin.y);g2.strokeStyle=light?'#a42e78':'#ffb5d7';g2.lineWidth=light?2:1.3;
     g2.beginPath();g2.moveTo(gx-8,gy);g2.lineTo(gx+8,gy);g2.moveTo(gx,gy-8);g2.lineTo(gx,gy+8);g2.stroke();
-    if(!window.cncLive2DMarkerUpdate&&s?.x!=null&&s?.y!=null){const x=X(s.x+origin.x),y=Y(s.y+origin.y);g2.strokeStyle='#ffcb6e';g2.lineWidth=2.5;g2.beginPath();g2.arc(x,y,7,0,Math.PI*2);g2.stroke();}
-    g2.fillStyle='#d7e9f8';g2.font=`600 ${14*pixelRatio}px system-ui`;g2.fillText('2D TOOLPATH + VECTOR CONTOURS',14*pixelRatio,24*pixelRatio);
+    if(!window.cncLive2DMarkerUpdate&&s?.x!=null&&s?.y!=null){const x=X(s.x+origin.x),y=Y(s.y+origin.y);g2.strokeStyle=light?'#ce6d00':'#ffcb6e';g2.lineWidth=2.5;g2.beginPath();g2.arc(x,y,7,0,Math.PI*2);g2.stroke();}
+    g2.fillStyle=light?'#243d56':'#d7e9f8';g2.font=`600 ${14*pixelRatio}px system-ui`;g2.fillText('2D TOOLPATH + VECTOR CONTOURS',14*pixelRatio,24*pixelRatio);
     g2.font=`${12*pixelRatio}px system-ui`;g2.fillText(`${Math.min(n,steps.length)} / ${steps.length} blocks`,14*pixelRatio,43*pixelRatio);
   };
 
@@ -1696,8 +1699,10 @@ cncLoadDrillTest();
     const {W,H,scale,ox,oy,pixelRatio}=cnc2DProjection();
     // Canvas transform preserves vector sharpness while zooming and panning.
     g2.save();g2.translate(ox,H-oy);g2.scale(scale,-scale);
-    for(const item of cncHybridCache.paths){
-      g2.strokeStyle=item.color;g2.lineWidth=item.width*pixelRatio/scale;
+    const lightContours=document.documentElement.dataset.cncTheme==='light';
+    const contourPalette=['#08788e','#17669c','#5946a1','#87418e','#946312'];
+    for(const [contourIndex,item] of cncHybridCache.paths.entries()){
+      g2.strokeStyle=lightContours?contourPalette[contourIndex%contourPalette.length]:item.color;g2.lineWidth=(lightContours?item.width+0.45:item.width)*pixelRatio/scale;
       g2.setLineDash([]);g2.stroke(item.path);
     }
     g2.restore();
@@ -1705,7 +1710,7 @@ cncLoadDrillTest();
     // Avoid double markers and keep circular interpolation independent of contours.
     if(!window.cncLive2DMarkerUpdate&&s?.x!=null&&s?.y!=null){
       const px=ox+(s.x+origin.x)*scale,py=H-oy-(s.y+origin.y)*scale;
-      g2.strokeStyle='#ffb35d';g2.lineWidth=2.5;
+      g2.strokeStyle=lightContours?'#ce6d00':'#ffb35d';g2.lineWidth=2.5;
       g2.beginPath();g2.arc(px,py,7,0,Math.PI*2);g2.stroke();
     }
   };
@@ -6228,9 +6233,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
   const x=(offX+(state.x+origin.x)*scale)*w/W;
   const y=(H-offY-(state.y+origin.y)*scale)*h/H;
   const r=Math.max(2,Math.abs(radius(state)*scale*w/W));
-  ctx.strokeStyle='#ffab37';ctx.lineWidth=3;
+  ctx.strokeStyle=document.documentElement.dataset.cncTheme==='light'?'#ce6d00':'#ffab37';ctx.lineWidth=3;
   ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=document.documentElement.dataset.cncTheme==='light'?'#263f56':'#fff';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
  }
  // Live position is pushed by the WebGL renderer through cncFrame2D.
  // The 3D drawing engine may use webDraw as an alias. Playback calls fastDraw.
