@@ -6773,6 +6773,58 @@ localTitle.textContent='Rule-based syntax & simulator diagnostics';
 const localSummary=document.createElement('div');localSummary.id='cnc-local-summary';localSummary.setAttribute('role','status');
 const localList=document.createElement('div');localList.id='cnc-local-results';
 local.append(localTitle,localSummary,localList);zone.append(local);
+const manualDetails=document.createElement('details');
+manualDetails.id='cnc-fanuc-reference';
+manualDetails.className='cnc-validation-group';
+const manualHeading=document.createElement('summary');
+manualHeading.textContent='FANUC 31i Manual Reference · EMCO WinNC (page references)';
+const manualStatus=document.createElement('div');
+manualStatus.className='cnc-validation-note';
+manualStatus.textContent='Loading FANUC 31i programming references…';
+const manualResults=document.createElement('div');
+manualResults.id='cnc-fanuc-reference-results';
+manualDetails.append(manualHeading,manualStatus,manualResults);
+zone.append(manualDetails);
+let fanucManualEntries=[];
+function fanucCodeKey(word){
+ const m=String(word).match(/^([GM])0*(\d+(?:\.\d+)?)$/i);
+ return m?m[1].toUpperCase()+Number(m[2]):'';
+}
+function fanucSelectedReferences(code=editor.value){
+ if(!fanucManualEntries.length)return [];
+ const used=new Set();
+ for(const match of code.matchAll(/\b([GM])\s*0*(\d+(?:\.\d+)?)\b/gi)){
+   used.add(match[1].toUpperCase()+Number(match[2]));
+ }
+ return fanucManualEntries.filter(entry=>entry.codes.some(word=>used.has(fanucCodeKey(word)))).slice(0,14);
+}
+function fanucManualContext(){
+ const hits=fanucSelectedReferences();
+ if(!hits.length)return '';
+ return 'FANUC 31i REFERENCE INDEX (EMCO WinNC for FANUC 31i Mill, source PDF pages; summarized reference notes, not the full manual). Use only these supplied citations, never fabricate page references. When making manual-supported claims, cite PDF p. and section; distinguish controller-specific behavior.\n'+hits.map(e=>e.codes.join('/')+' | '+e.topic+' | PDF p.'+e.page+' ('+e.section+'): '+e.guidance).join('\n');
+}
+function renderFanucReferences(){
+ const hits=fanucSelectedReferences();
+ manualResults.replaceChildren();
+ if(!fanucManualEntries.length)return;
+ manualStatus.textContent=hits.length?hits.length+' matching manual topic(s) for current G-code. PDF page numbers refer to the 324-page source manual.':'Reference loaded. Enter a G- or M-command to see matching topics.';
+ for(const item of hits){
+   const line=document.createElement('div');
+   line.className='cnc-validation-issue info';
+   const name=document.createElement('strong');
+   name.textContent=item.codes.join(' / ')+' · '+item.topic+' · PDF p.'+item.page+' ('+item.section+')';
+   const summary=document.createElement('span');summary.textContent=item.guidance;
+   line.append(name,summary);manualResults.append(line);
+ }
+}
+fetch('./fanuc31i-reference.json',{cache:'no-store'}).then(res=>{
+ if(!res.ok)throw Error('Reference index unavailable');
+ return res.json();
+}).then(data=>{
+ fanucManualEntries=Array.isArray(data.entries)?data.entries:[];
+ renderFanucReferences();
+ reviewAfter('manual-loaded');
+}).catch(err=>{manualStatus.textContent='Manual index not available: '+err.message;});
 const cloud=document.createElement('div');cloud.className='cnc-validation-group';
 const cloudTitle=document.createElement('div');cloudTitle.className='cnc-validation-subheading';cloudTitle.textContent='Cloud AI · Fanuc 31i review';
 const cloudStatus=document.createElement('div');cloudStatus.id='cnc-cloud-status';cloudStatus.setAttribute('role','status');cloudStatus.setAttribute('aria-live','polite');
@@ -6783,7 +6835,7 @@ const rulesSummary=document.createElement('summary');rulesSummary.textContent='O
 const rules=document.createElement('textarea');rules.id='cnc-unified-rules';rules.setAttribute('aria-label','Additional assignment requirements');rules.maxLength=7000;rules.placeholder='Optional: e.g., required G54 origin, drawing profile, depths, specific tools and your coding rubric. Code is read automatically from the editor above.';
 rulesDetails.append(rulesSummary,rules);
 const note=document.createElement('p');note.className='cnc-validation-note';
-note.textContent='Automatic checks read the loaded and edited program above. Cloud review sends G-code, setup and validation context to Gemini; avoid private student information. AI does not certify machine safety.';
+note.textContent='Cloud AI receives current G-code, setup, rule-based findings and matching EMCO WinNC FANUC 31i reference notes with PDF page citations. The full PDF is not sent. Avoid private student information. Manual references are not machine-safety certification.';
 cloud.append(cloudTitle,cloudStatus,challenge,cloudResults,rulesDetails,note);zone.append(cloud);
 
 const button=document.getElementById('cnc-unified-review');
@@ -6830,6 +6882,7 @@ function issuesForDraft(){
  return issues;
 }
 function displayLocal(){
+ renderFanucReferences();
  const problems=issuesForDraft();
  localList.replaceChildren();
  const errors=problems.filter(x=>x.severity==='error').length;
@@ -6851,7 +6904,7 @@ function displayLocal(){
  }
  if(problems.length+unique.length>12)add(localList,'span','More findings may be available in full program diagnostics.');
 }
-function payloadSignature(){return editor.value+'\n'+rules.value+'\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
+function payloadSignature(){return editor.value+'\n'+fanucManualContext()+'\n'+rules.value+'\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
 function reviewAfter(reason='edit',delay=FOCUS_DELAY){
  revision++;
  clearTimeout(localTimer);clearTimeout(cloudTimer);
@@ -6919,7 +6972,7 @@ async function review(manual){
  const val=id=>document.getElementById(id)?.value||'';
  const data={
   code:editor.value.slice(0,24000),
-  requirements:(DEFAULT_RULES+'\n'+rules.value.trim()).slice(0,7000),turnstileToken:token,
+  requirements:(DEFAULT_RULES+'\n'+fanucManualContext()+'\n'+rules.value.trim()).slice(0,7000),turnstileToken:token,
   setup:{shape:val('stockshape'),stockX:val('sx'),stockY:val('sy'),stockZ:val('sz'),g54X:val('ox'),g54Y:val('oy'),g54Z:val('oz')},
   diagnostics:(document.getElementById('diag-list')?.innerText||localSummary.textContent).slice(0,5000)
  };
