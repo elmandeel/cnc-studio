@@ -841,7 +841,7 @@ function cncValidateSource(text){
  }
 }
 function cncPrepareProgram(){
- // Leave the currently edited last block alone until Enter, blur, or explicit import.
+ // Keep the current unfinished block editable; only Enter finalizes that block.
  window.cncFinalizeSemicolons?.(false);
  const config=cncReadSetup(),text=$('source').value;
  cncValidateSource(text);
@@ -6308,7 +6308,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    else if(event.inputType==='insertLineBreak'||event.inputType==='insertParagraph')apply(false);
  });
  editor.addEventListener('compositionend',()=>{if(editor.value.includes('\n'))apply(false);});
- editor.addEventListener('blur',()=>apply(true));
+ // Leaving the editor does not finish the active block: Enter does.
  // Finish the current block before starting the next, with or without N numbering.
  // Capture phase takes priority over the old numbering-only Enter handler.
  editor.addEventListener('keydown',event=>{
@@ -6318,6 +6318,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    const lineStart=before.lastIndexOf('\n')+1;
    const current=before.slice(lineStart),tail=after.split('\n',1)[0];
    const nextLine=after.slice(tail.length).replace(/^\n/,'').split('\n',1)[0];
+   // Only the block being left gets a semicolon. The following N line stays open.
    const completed=completeLine(current+tail);
    const numbered=document.getElementById('cnc-auto-sequence')?.checked;
    let next='';
