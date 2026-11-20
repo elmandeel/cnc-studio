@@ -6927,13 +6927,9 @@ const cloudTitle=document.createElement('div');cloudTitle.className='cnc-validat
 const cloudStatus=document.createElement('div');cloudStatus.id='cnc-cloud-status';cloudStatus.setAttribute('role','status');cloudStatus.setAttribute('aria-live','polite');
 const cloudResults=document.createElement('div');cloudResults.id='cnc-cloud-results';
 const challenge=document.createElement('div');challenge.id='cnc-ai-challenge';
-const rulesDetails=document.createElement('details');rulesDetails.id='cnc-validation-requirements';
-const rulesSummary=document.createElement('summary');rulesSummary.textContent='Optional: customize assignment requirements';
 const rules=document.createElement('textarea');rules.id='cnc-unified-rules';rules.setAttribute('aria-label','Additional assignment requirements');rules.maxLength=7000;rules.placeholder='Optional: e.g., required G54 origin, drawing profile, depths, specific tools and your coding rubric. Code is read automatically from the editor above.';
-rulesDetails.append(rulesSummary,rules);
-const note=document.createElement('p');note.className='cnc-validation-note';
-note.textContent='Cloud AI receives current G-code, setup, rule-based findings and matching EMCO WinNC FANUC 31i reference notes with PDF page citations. The full PDF is not sent. Avoid private student information. Manual references are not machine-safety certification.';
-cloud.append(cloudTitle,cloudStatus,challenge,cloudResults,rulesDetails,note);zone.append(cloud);
+// Retain the internal rules value for automatic Cloud AI validation, without optional UI.
+cloud.append(cloudTitle,cloudStatus,challenge,cloudResults);zone.append(cloud);
 
 const button=document.getElementById('cnc-unified-review');
 const automatic=document.getElementById('cnc-unified-auto');
