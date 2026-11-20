@@ -306,6 +306,7 @@ html[data-cnc-theme="light"] #cnc-auto-status{background:#e0f3ee!important;color
 html[data-cnc-theme="light"] .viewport,html[data-cnc-theme="light"] canvas,
 html[data-cnc-theme="light"] #flat,html[data-cnc-theme="light"] #three,
 html[data-cnc-theme="light"] #webgl3{background:#e8f0f8}
+html[data-cnc-theme="light"] #flat{background:#eef3f8}
 /* The live cutter canvas overlays the 2D toolpath: never paint its background. */
 #cnc-live-cutter-2d,html[data-cnc-theme="light"] #cnc-live-cutter-2d{background:transparent!important;}
 html[data-cnc-theme="light"] .viewport-label{background:rgba(247,251,255,.9);border-color:#b8cada;color:#294963}
@@ -6726,11 +6727,24 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
 const root=document.documentElement;
 const button=document.getElementById('cnc-theme-toggle');
 if(!button)return;
-const key='cnc-studio-theme';
-let initial='dark';
-try{const value=localStorage.getItem(key);if(value==='light'||value==='dark')initial=value;}catch(e){}
+// Always open in dark mode. Light mode is available for the current session.
+const initial='dark';
 const meta=document.querySelector('meta[name="theme-color"]');
 const icon=button.querySelector('.cnc-theme-icon'),label=button.querySelector('.cnc-theme-text');
+function redrawThemeCanvas(){
+ // A canvas retains its last painted pixels even when CSS changes. Explicitly
+ // repaint the 2D toolpaths and stock with the newly selected theme palette.
+ // requestAnimationFrame lets Safari finish its viewport and layout updates.
+ const paint=()=>{
+   try{
+     if(typeof cnc2DLiveFrame==='function' && typeof cursor!=='undefined')
+       cnc2DLiveFrame(cursor,1);
+   }catch(e){console.warn('2D theme repaint',e);}
+   try{window.cnc2DRedraw?.();}catch(e){}
+   try{window.CNCStudioView?.redraw?.();}catch(e){}
+ };
+ requestAnimationFrame(()=>requestAnimationFrame(paint));
+}
 function apply(theme){
  const light=theme==='light';
  root.dataset.cncTheme=theme;
@@ -6739,17 +6753,19 @@ function apply(theme){
  if(icon)icon.textContent=light?'☾':'☀';
  if(label)label.textContent=light?'Dark':'Light';
  if(meta)meta.content=light?'#f8fafc':'#081a34';
+ redrawThemeCanvas();
 }
 apply(initial);
 button.addEventListener('click',()=>{
  const next=root.dataset.cncTheme==='light'?'dark':'light';
  apply(next);
- try{localStorage.setItem(key,next);}catch(e){}
- // Draw with the new palette; do not reset stock, program, cursor, or playback.
- try{window.cnc2DRedraw?.();}catch(e){}
- try{window.CNCStudioView?.redraw?.();}catch(e){}
  window.dispatchEvent(new Event('resize'));
 });
+// Mode switching can expose an old dark canvas after the light theme was
+// selected. Repaint immediately after the 2D viewport becomes visible.
+document.querySelectorAll('[data-layout="2d"],[data-layout="split"]')
+ .forEach(el=>el.addEventListener('click',redrawThemeCanvas));
+
 })();
 </script>
 
