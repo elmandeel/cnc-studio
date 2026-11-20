@@ -841,6 +841,7 @@ function cncValidateSource(text){
  }
 }
 function cncPrepareProgram(){
+ window.cncFinalizeSemicolons?.(true);
  const config=cncReadSetup(),text=$('source').value;
  cncValidateSource(text);
  window.cncTools.mergeFromDocument('',text);
@@ -6261,6 +6262,61 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    button.addEventListener('click',()=>requestAnimationFrame(()=>requestAnimationFrame(refresh))));
 })();
 </script>
+<script id="cnc-auto-semicolon">
+(()=>{
+ 'use strict';
+ const editor=document.getElementById('source');
+ if(!editor)return;
+ // Complete finished blocks, never an unfinished line under the caret.
+ function completeLine(line){
+   if(!line.trim()||/^\s*%\s*$/.test(line)||/^\s*\(.*\)\s*$/.test(line)||/^\s*;/.test(line))return line;
+   // Preserve standalone O-program declarations and optional trailing parenthesis comments.
+   if(/^\s*O\s*\d+\s*$/i.test(line))return line;
+   const match=line.match(/^(.*?)(\s*(?:\([^()]*\)\s*)*)$/);
+   const code=match?match[1]:line,comments=match?match[2]:'';
+   if(!code.trim()||/;\s*$/.test(code))return line;
+   return code.replace(/\s*$/,'')+';'+comments;
+ }
+ function format(text,all){
+   const rows=text.split('\n');
+   return rows.map((row,index)=>index===rows.length-1&&!all?row:completeLine(row)).join('\n');
+ }
+ function apply(all=false){
+   const original=editor.value,updated=format(original,all);
+   if(original===updated)return false;
+   const start=editor.selectionStart,end=editor.selectionEnd,direction=editor.selectionDirection;
+   // Map selection through inserted terminators, including multiline paste on mobile.
+   const newStart=format(original.slice(0,start),all&&start===original.length).length;
+   const newEnd=format(original.slice(0,end),all&&end===original.length).length;
+   editor.value=updated;
+   editor.setSelectionRange(Math.min(newStart,updated.length),Math.min(newEnd,updated.length),direction);
+   editor.dispatchEvent(new Event('input',{bubbles:true}));
+   return true;
+ }
+ window.cncFinalizeSemicolons=apply;
+ window.cncCompleteSemicolonLine=completeLine;
+ editor.addEventListener('input',event=>{
+   if(event.isComposing)return;
+   if(event.inputType==='insertFromPaste'||event.inputType==='insertFromDrop'||event.inputType==='insertLineBreak'||event.inputType==='insertParagraph')apply(false);
+ });
+ editor.addEventListener('compositionend',()=>{if(editor.value.includes('\n'))apply(false);});
+ editor.addEventListener('blur',()=>apply(true));
+ // Support mobile virtual keyboards when auto-sequence numbering is disabled.
+ editor.addEventListener('keydown',event=>{
+   const sequence=document.getElementById('cnc-auto-sequence');
+   if(sequence?.checked||event.key!=='Enter'||event.isComposing||event.shiftKey||event.ctrlKey||event.metaKey||event.altKey)return;
+   const start=editor.selectionStart,end=editor.selectionEnd;
+   const before=editor.value.slice(0,start),after=editor.value.slice(end);
+   const lineStart=before.lastIndexOf('\n')+1;
+   const current=before.slice(lineStart),tail=after.split('\n',1)[0];
+   const completed=completeLine(current+tail);
+   if(completed===current+tail)return;
+   event.preventDefault();
+   editor.setRangeText(completed+'\n',lineStart,end+tail.length,'end');
+   editor.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+})();
+</script>
 <script id="cnc-manual-auto-sequence">
 (()=>{
  'use strict';
@@ -6296,9 +6352,12 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
    if(seq.test(remainder))return;
    const next=nextNumber(before);
    // An empty editor begins with N5; otherwise Enter starts the next block.
+   const completed=window.cncCompleteSemicolonLine?window.cncCompleteSemicolonLine(current+remainder):null;
    const insert='\nN'+next+' ';
    event.preventDefault();
-   editor.setRangeText(insert,start,end,'end');
+   if(completed!==null&&completed!==current+remainder){
+     editor.setRangeText(completed+insert,before.lastIndexOf('\n')+1,end+remainder.length,'end');
+   }else editor.setRangeText(insert,start,end,'end');
    editor.dispatchEvent(new Event('input',{bubbles:true}));
  });
 })();
