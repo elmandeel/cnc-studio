@@ -6945,7 +6945,7 @@ cloud.append(cloudTitle,cloudStatus,challenge,cloudResults);zone.append(cloud);
 const button=document.getElementById('cnc-unified-review');
 const automatic=document.getElementById('cnc-unified-auto');
 const FOCUS_DELAY=6000,MIN_INTERVAL=30000,MAX_PER_HOUR=12;
-const DEFAULT_RULES='Review this Fanuc 31i milling G-code for numeric syntax, unknown/unsupported addresses or G/M commands, modal G90/G91, G20/G21, G54/G52/G53 handling, tools, feed, spindle, G00-G03 arcs, offsets, cutter compensation, canned cycles, M98/M99 subprogram use, and potentially unsafe moves. Use supplied stock and G54 fields and local diagnostics. Cite original N and O identifiers. Do not assume unspecified drawing geometry, tools or work origin; report uncertainty. The educational MET 238 coding convention uses N numbers in increments of 5, semicolon-terminated blocks, concise blocks, G54, and appropriate tool offsets. Never certify machine safety.';
+const DEFAULT_RULES="Validate Fanuc 31i milling G-code in STRICT CONFIRMED-ERROR-ONLY mode. Return findings ONLY for demonstrably incorrect code, with an exact original N block (and O program when relevant), the problematic G-code/address, and a specific reason that follows from the actual code and known Fanuc semantics. Severity must be error. Check complete-program context, modal states, tool changes, canned cycles, tapping feed mode (G94/G95), F and S, arcs, compensation, offsets and subprograms before judging a block. Treat N-number increments of 5, semicolons, formatting, preferred styles, nonstandard but valid sequences, recommendations, missing optional commands, and controller-dependent possibilities as NOT errors. Do not flag merely unusual or potentially risky moves, unverified feeds/speeds, machine setup assumptions, or issues requiring an unavailable drawing, tool specification or machine parameters. The local diagnostics are clues, not evidence; independently verify them. If evidence is insufficient, omit the finding. No warnings, informational findings, advice, suggestions, or speculative safety claims. If no errors are proven, return findings: [] and summary: No confirmed G-code errors found. Never claim machine-safety certification.";
 const WORD=/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g;
 const ALLOWED=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
 const KNOWN_G=new Set([0,1,2,3,4,17,18,19,20,21,28,40,41,42,43,49,52,53,54,55,56,57,58,59,73,74,76,80,81,82,83,84,85,86,87,88,89,90,91,94,95,97,98,99]);
@@ -7021,16 +7021,28 @@ function reviewAfter(reason='edit',delay=FOCUS_DELAY){
 }
 function showAI(report){
  cloudResults.replaceChildren();
- add(cloudResults,'strong',report.summary||'Cloud review complete');
- for(const finding of (Array.isArray(report.findings)?report.findings:[]).slice(0,12)){
-  const div=document.createElement('div');div.className='cnc-validation-issue '+(['error','warning'].includes(finding.severity)?finding.severity:'info');
-  add(div,'strong',(finding.block?finding.block+' · ':'')+(finding.title||'Finding'));
-  add(div,'span',finding.explanation||'');
-  if(finding.suggestion)add(div,'span','Suggestion: '+finding.suggestion);
+ // Only display specific, block-referenced errors; suppress advice and warnings.
+ const findings=(Array.isArray(report.findings)?report.findings:[]).filter(f=>{
+  const severity=String(f?.severity||'').toLowerCase();
+  const location=String(f?.block||'').trim();
+  const detail=String(f?.explanation||'').trim();
+  return severity==='error' && /\\bN\\s*\\d+\\b/i.test(location) &&
+    detail.length>=20 && String(f?.title||'').trim().length>0 &&
+    !/\\b(might|may|could|possibly|potentially|consider|recommend|verify|check whether|if applicable|best practice|convention)\\b/i.test(detail);
+ }).slice(0,12);
+ if(!findings.length){
+  add(cloudResults,'strong','No confirmed G-code errors found.');
+  return;
+ }
+ add(cloudResults,'strong',findings.length+' reported error(s) requiring review');
+ for(const finding of findings){
+  const div=document.createElement('div');div.className='cnc-validation-issue error';
+  add(div,'strong',finding.block+' · '+finding.title);
+  add(div,'span',finding.explanation);
   cloudResults.append(div);
  }
- if(Array.isArray(report.limitations)&&report.limitations.length)add(cloudResults,'span','Limitations: '+report.limitations.join(' · '),'cnc-validation-note');
 }
+
 function loadTurnstile(){
  return new Promise((resolve,reject)=>{
   if(window.turnstile)return resolve();
