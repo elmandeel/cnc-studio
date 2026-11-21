@@ -203,6 +203,15 @@ body.cnc-program-3d #source { line-height: var(--cnc-code-line-height, 19px) !im
  background-repeat: no-repeat;
  background-attachment: scroll;
 }
+/* Light theme: pale active-block band with high-contrast dark G-code text.
+   Retain the original amber dark-theme highlight unchanged. */
+html[data-cnc-theme="light"] #source[data-active-source-line] {
+ color:#1c364e;
+ background-color:#f8fbfe;
+ background-image:linear-gradient(to right,#df8b23 0 4px,#fff0c8 4px 100%);
+ caret-color:#17374f;
+}
+
 #rpm,#feed{font-size:clamp(12px,1.25vw,18px);overflow-wrap:anywhere;line-height:1.35}
 /* v150: A single, shared playback toolbar beneath the active 2D/3D viewport.
    In split view it remains beneath both right-hand viewports, independent of the editor. */
