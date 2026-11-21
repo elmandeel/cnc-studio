@@ -7035,8 +7035,8 @@ function displayLocal(){
  // Apply the same tool-length compensation rule while editing, before simulation reload.
  for(const finding of cncFindMissingG43(editor.value)){
   if(actual.some(d=>d.line===finding.line&&d.message===finding.message))continue;
-  const code=finding.code.replace(/\\([^)]*\\)/g,'').replace(/;.*$/,'');
-  const seq=/\\bN\\s*(\\d+)\\b/i.exec(code);
+  const code=finding.code.replace(/\([^)]*\)/g,'').replace(/;.*$/,'');
+  const seq=/\bN\s*(\d+)\b/i.exec(code);
   unique.push({severity:'error',text:seq?'N'+seq[1]:'line '+finding.line,explanation:finding.message});
  }
  const count=errors+warnings+unique.length;
