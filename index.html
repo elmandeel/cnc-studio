@@ -1588,8 +1588,43 @@ function cncAddIssue(type,step,line,code,message,fix){
  cncIssues.push({type,step,line,location,code:location?.code||code,message,fix});
 }
 function cncLineNumber(code){let lines=$('source').value.split(/\r?\n/),clean=x=>x.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim().replace(/\s+/g,'').toUpperCase();let match=clean(code);return Math.max(1,lines.findIndex(l=>clean(l)===match)+1);}
+// MET 238 setup rule: re-activate G43 after each M6 before a programmed tool move.
+// This is a course/workflow validation rule, not a universal Fanuc controller alarm.
+function cncFindMissingG43(code){
+ const result=[];let toolChangeLine=0,needsG43=false,motionMode=null;
+ const lines=String(code||'').split(/\r?\n/);
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i].replace(/\([^)]*\)/g,'').replace(/;.*$/,'').replace(/^\s*\//,'').trim();
+  if(!line||line==='%')continue;
+  if(/^O\s*\d+\s*$/i.test(line)){needsG43=false;toolChangeLine=0;motionMode=null;continue;}
+  const words=[...line.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)];
+  const gs=words.filter(w=>w[1].toUpperCase()==='G').map(w=>Number(w[2]));
+  const ms=words.filter(w=>w[1].toUpperCase()==='M').map(w=>Number(w[2]));
+  const hasAxis=words.some(w=>/[XYZABC]/i.test(w[1]));
+  if(ms.includes(6)){needsG43=true;toolChangeLine=i+1;motionMode=null;}
+  if(gs.includes(49))needsG43=true;
+  if(gs.includes(43))needsG43=false;
+  const motionG=gs.filter(g=>[0,1,2,3,28,30,53,73,74,76,81,82,83,84,85,86,87,88,89].includes(g));
+  if(gs.includes(80))motionMode=null;
+  const hasCanned=motionG.some(g=>[73,74,76,81,82,83,84,85,86,87,88,89].includes(g));
+  const hasMotion=motionG.some(g=>[0,1,2,3,28,30,53].includes(g))||(hasAxis&&motionMode!==null);
+  if(needsG43&&hasAxis&&(hasMotion||hasCanned)){
+   result.push({line:i+1,code:lines[i],toolChangeLine,
+    message:'Tool movement after M6 without G43 tool-length compensation.',
+    fix:'Activate G43 with the appropriate H offset after the tool change and before moving the tool (e.g. T1 H1 D1 M6 G43;).'});
+   // Keep tracking until G43 is actually restored; report each unsafe block.
+  }
+  if(motionG.some(g=>[0,1,2,3].includes(g)))motionMode=motionG.findLast(g=>[0,1,2,3].includes(g));
+  else if(hasCanned)motionMode=81;
+ }
+ return result;
+}
 function cncCheck(){cncIssues=[];cncFault=null;const raw=$('source').value.split(/\r?\n/);const sourceStepIndex=new Map();steps.forEach((e,i)=>{if(Number.isInteger(e.sourceLine)&&!sourceStepIndex.has(e.sourceLine))sourceStepIndex.set(e.sourceLine,i);});const allowed=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C']);
  raw.forEach((line,index)=>{const stripped=line.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();if(!stripped||stripped==='%'||/^O\s*\d+$/i.test(stripped))return;const tokens=[...stripped.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)];let remaining=stripped.replace(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g,'').replace(/\s+/g,'');let matching=sourceStepIndex.has(index+1)?sourceStepIndex.get(index+1):-1;if(remaining&&!/^\/.*$/.test(remaining)){const fix=/\bG0?2\b/i.test(stripped)&&/\bY\s*5\s+2\s*R\s*25\b/i.test(stripped)?'Likely split Y coordinate: N300 G2 X41 Y52 R25. Verify this against the engineering drawing before editing.':'Check letter/value pairs, missing digits, punctuation and unsupported syntax.';cncAddIssue('error',matching,index+1,stripped,'Unrecognized or incomplete G-code: '+remaining,fix);}for(const t of tokens){if(!allowed.has(t[1].toUpperCase()))cncAddIssue('error',matching,index+1,stripped,'Unsupported address '+t[1].toUpperCase(),'Remove the address or use a supported G-code word.');if(!Number.isFinite(+t[2]))cncAddIssue('error',matching,index+1,stripped,'Invalid numeric value','Use a finite number.');}if(/\bF\s*-/.test(stripped))cncAddIssue('error',matching,index+1,stripped,'Negative feed value','Use a positive F feed rate.');if(/\bS\s*-/.test(stripped))cncAddIssue('error',matching,index+1,stripped,'Negative spindle speed','Use a nonnegative spindle speed.');});
+ for(const finding of cncFindMissingG43($('source').value)){
+  const step=sourceStepIndex.has(finding.line)?sourceStepIndex.get(finding.line):-1;
+  cncAddIssue('error',step,finding.line,finding.code,finding.message,finding.fix);
+ }
  // Source-aware, approximate swept-tool checks against rectangular stock, prior to each move.
  steps.forEach((e,i)=>{if(!e.hasMove)return;const line=e.sourceLine||cncLineNumber(e.code);const paths=segments(e);if(!paths.length)return;const r=radius(e.after);let rapidHit=false,below=false,off=false,spindle=false;
  // A G00 retraction straight upward is an EXIT from stock, not an entry.
@@ -6945,7 +6980,7 @@ cloud.append(cloudTitle,cloudStatus,challenge,cloudResults);zone.append(cloud);
 const button=document.getElementById('cnc-unified-review');
 const automatic=document.getElementById('cnc-unified-auto');
 const FOCUS_DELAY=6000,MIN_INTERVAL=30000,MAX_PER_HOUR=12;
-const DEFAULT_RULES="Validate Fanuc 31i milling G-code in STRICT CONFIRMED-ERROR-ONLY mode. Return findings ONLY for demonstrably incorrect code, with an exact original N block (and O program when relevant), the problematic G-code/address, and a specific reason that follows from the actual code and known Fanuc semantics. Severity must be error. Check complete-program context, modal states, tool changes, canned cycles, tapping feed mode (G94/G95), F and S, arcs, compensation, offsets and subprograms before judging a block. Treat N-number increments of 5, semicolons, formatting, preferred styles, nonstandard but valid sequences, recommendations, missing optional commands, and controller-dependent possibilities as NOT errors. Do not flag merely unusual or potentially risky moves, unverified feeds/speeds, machine setup assumptions, or issues requiring an unavailable drawing, tool specification or machine parameters. The local diagnostics are clues, not evidence; independently verify them. If evidence is insufficient, omit the finding. No warnings, informational findings, advice, suggestions, or speculative safety claims. If no errors are proven, return findings: [] and summary: No confirmed G-code errors found. Never claim machine-safety certification.";
+const DEFAULT_RULES="Validate Fanuc 31i milling G-code in STRICT CONFIRMED-ERROR-ONLY mode. Return findings ONLY for demonstrably incorrect code, with an exact original N block (and O program when relevant), the problematic G-code/address, and a specific reason that follows from the actual code and known Fanuc semantics. Severity must be error. Enforce this CNC Studio MET 238 course rule: after every M6 tool change, G43 must be activated with the correct H tool-length offset before the first tool movement; G43 in the same block as M6 is valid. If a move occurs first, report it as an error citing the exact N block, even if other Fanuc setups might allow movement without G43. Check complete-program context, modal states, tool changes, canned cycles, tapping feed mode (G94/G95), F and S, arcs, compensation, offsets and subprograms before judging a block. Treat N-number increments of 5, semicolons, formatting, preferred styles, nonstandard but valid sequences, recommendations, missing optional commands, and controller-dependent possibilities as NOT errors. Do not flag merely unusual or potentially risky moves, unverified feeds/speeds, machine setup assumptions, or issues requiring an unavailable drawing, tool specification or machine parameters. The local diagnostics are clues, not evidence; independently verify them. If evidence is insufficient, omit the finding. No warnings, informational findings, advice, suggestions, or speculative safety claims. If no errors are proven, return findings: [] and summary: No confirmed G-code errors found. Never claim machine-safety certification.";
 const WORD=/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g;
 const ALLOWED=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
 const KNOWN_G=new Set([0,1,2,3,4,17,18,19,20,21,28,40,41,42,43,49,52,53,54,55,56,57,58,59,73,74,76,80,81,82,83,84,85,86,87,88,89,90,91,94,95,97,98,99]);
@@ -6996,6 +7031,13 @@ function displayLocal(){
  for(const d of actual.slice(0,15)){
   if(d.type!=='error'&&d.type!=='collision')continue;
   unique.push({severity:d.type==='collision'?'warning':'error',text:typeof cncBlockLabel==='function'?cncBlockLabel(d.location):'Loaded program',explanation:d.message});
+ }
+ // Apply the same tool-length compensation rule while editing, before simulation reload.
+ for(const finding of cncFindMissingG43(editor.value)){
+  if(actual.some(d=>d.line===finding.line&&d.message===finding.message))continue;
+  const code=finding.code.replace(/\\([^)]*\\)/g,'').replace(/;.*$/,'');
+  const seq=/\\bN\\s*(\\d+)\\b/i.exec(code);
+  unique.push({severity:'error',text:seq?'N'+seq[1]:'line '+finding.line,explanation:finding.message});
  }
  const count=errors+warnings+unique.length;
  localSummary.textContent=count?errors+' syntax error(s), '+warnings+' warning(s), '+unique.length+' simulation finding(s).':'✓ No issues found by current rule checks (not a safety certification).';
