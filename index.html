@@ -5988,14 +5988,7 @@ asyncStartWorker();
  window.addEventListener('pagehide',clearGesture);
  window.addEventListener('orientationchange',()=>{if(pending){cancelAnimationFrame(gestureFrame);flushCamera();}clearGesture();requestAnimationFrame(()=>view.redraw?.());});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(pending){cancelAnimationFrame(gestureFrame);flushCamera();}clearGesture();}else requestAnimationFrame(()=>view.redraw?.());});
- const toolbar=cv.closest('.view')?.querySelector('.viewtoolbar');
- if(toolbar&&!toolbar.querySelector('[data-cnc-zoom]')){
-  for(const [label,k] of [['Zoom +',1.25],['Zoom −',.8]]){
-   const b=document.createElement('button');b.type='button';b.textContent=label;
-   b.dataset.cncZoom='1';b.style.cssText='min-height:44px;padding:7px 13px;touch-action:manipulation';
-   b.addEventListener('click',()=>view.scale(k));toolbar.appendChild(b);
-  }
- }
+ // Gesture/pinch and wheel zoom remain enabled; no extra zoom buttons.
  // Draw immediately: gestures are now active before Play, during motion and after Stop.
  requestAnimationFrame(()=>view.redraw());
 })();
@@ -6045,6 +6038,10 @@ asyncStartWorker();
 })();
 </script>
 
+<style id="cnc-toolbar-simplify">
+/* Keep internal Fit controls available to scripts, but remove toolbar buttons. */
+#fit2,#fit3,.viewtoolbar [data-cnc-zoom]{display:none!important}
+</style>
 <style id="cnc-tool-library-simplify">
 /* Show only Add tool while retaining existing tool-library JS bindings. */
 #addthreadmill,#toolimport,#toolexport{display:none!important}
