@@ -6063,6 +6063,31 @@ asyncStartWorker();
 /* Keep internal Fit controls available to scripts, but remove toolbar buttons. */
 #fit3,.viewtoolbar [data-cnc-zoom],.viewtoolbar button[data-camera]{display:none!important}
 </style>
+<style id="cnc-tool-light-theme">
+/* Tool Library cards were hard-coded for dark mode. Match the rest of the light UI. */
+html[data-cnc-theme="light"] #toollist .toolentry{
+ background:#f8fbfe!important;color:#1a3047!important;
+ border-color:#c3d4e3!important;
+}
+html[data-cnc-theme="light"] #toollist .toolhead b{
+ color:#19374f!important;
+}
+html[data-cnc-theme="light"] #toollist .toolentry label{
+ color:#29465f!important;
+}
+html[data-cnc-theme="light"] #toollist .toolentry input,
+html[data-cnc-theme="light"] #toollist .toolentry select{
+ background:#fff!important;color:#1c364e!important;
+ border:1px solid #b5c8d9!important;
+}
+html[data-cnc-theme="light"] #toollist .toolentry button{
+ background:#eef4fa!important;color:#214662!important;
+ border-color:#a9bed2!important;
+}
+html[data-cnc-theme="light"] #toollist .toolentry button:hover{
+ background:#dcebf6!important;
+}
+</style>
 <style id="cnc-tool-library-simplify">
 /* Show only Add tool while retaining existing tool-library JS bindings. */
 #addthreadmill,#toolimport,#toolexport{display:none!important}
