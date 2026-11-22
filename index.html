@@ -3323,7 +3323,7 @@ function crcNeighbor(idx,comp,forward){for(let i=idx+(forward?1:-1);i>=0&&i<step
  // Non-motion blocks are modal updates. Stop at a cancellation, change of
  // compensation side, tool change or program boundary; never join across them.
  if(!e.hasMove){
-  if(e.before.comp!==e.after.comp||e.ends||/\\bM\\s*(?:0?6|0?2|30)\\b/i.test(e.code||''))return null;
+  if(e.before.comp!==e.after.comp||e.ends||/\bM\s*(?:0?6|0?2|30)\b/i.test(e.code||''))return null;
   continue;
  }
  return crcContour(e,comp)?e:null;
