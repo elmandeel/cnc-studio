@@ -6469,17 +6469,24 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && typeof 
  // Only manual keystrokes are numbered. File imports and pasted programs stay intact.
  const seq=/^\s*N(\d+)\b/i;
  function nextNumber(before,after){
-   const previous=[...before.matchAll(/^\s*N(\d+)\b/gim)];
-   const last=previous.length?Number(previous[previous.length-1][1]):0;
-   // When inserting between existing blocks, fill the gap one number at a time.
-   const upcoming=after.match(/(?:^|\n)\s*N(\d+)\b/i);
+   // Number blocks only within their own O-program section. An O subprogram
+   // below the caret must never consume the main program's available N labels.
+   const priorLines=before.split(/\r?\n/);
+   let boundary=0;
+   for(let i=priorLines.length-1;i>=0;i--){
+     if(/^\s*O\s*\d+\s*;?\s*$/i.test(priorLines[i])){boundary=i+1;break;}
+   }
+   const ownPrevious=priorLines.slice(boundary).join('\n');
+   const matches=[...ownPrevious.matchAll(/^\s*N(\d+)\b/gim)];
+   const last=matches.length?Number(matches[matches.length-1][1]):0;
+   // Only examine N blocks until the next O-program declaration.
+   const nextProgram=after.search(/(?:^|\n)\s*O\s*\d+\s*;?\s*(?=\n|$)/i);
+   const currentSection=nextProgram>=0?after.slice(0,nextProgram):after;
+   const upcoming=currentSection.match(/(?:^|\n)\s*N(\d+)\b/i);
    if(upcoming){
-     const upper=Number(upcoming[1]);
-     const candidate=last+1;
-     // Never duplicate an existing N number if the gap has been exhausted.
+     const upper=Number(upcoming[1]),candidate=last+1;
      return candidate<upper?candidate:null;
    }
-   // Continue normal MET 238 numbering by 5 when appending to the program.
    return Math.floor(last/5)*5+5;
  }
  editor.addEventListener('beforeinput',event=>{
