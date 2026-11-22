@@ -524,6 +524,16 @@ const sanitize=r=>{
  return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter};
 };
 function snapshotDraft(){return records.map(copyRecord);}
+function restoreSnapshot(snapshot){
+ const incoming=Array.isArray(snapshot)?snapshot:[];
+ const validated=incoming.map(r=>sanitize({type:'Other',angle:90,fluteLength:20,pitch:1,tipDiameter:0,...r}));
+ if(new Set(validated.map(r=>r.number)).size!==validated.length)throw Error('Duplicate tool numbers in saved project');
+ records=validated;
+ removedNumbers.clear();
+ renderRows();
+ notify('import');
+}
+
 function validate(){
  const result=[],ids=new Set();
  for(const rec of records){const r=sanitize(rec);if(ids.has(r.number))throw Error('Duplicate tool T'+r.number);ids.add(r.number);result.push(r);}
@@ -732,7 +742,7 @@ $('tooljson').addEventListener('change',async e=>{
  }
 records=seed();commit();renderRows();
 function clearForImport(){records=[];removedNumbers.clear();renderRows();}
- window.cncTools={clearForImport,collect,ensure,name,resetExample,setDrillingTestTools,setClasswork2,setClasswork2023,mergeFromDocument,extractToolHints,snapshotDraft,validate,commit,validateProgram,get:number=>{const r=committedRecords.find(t=>t.number===Number(number));return r?{...r}:null;}};
+ window.cncTools={restoreSnapshot,clearForImport,collect,ensure,name,resetExample,setDrillingTestTools,setClasswork2,setClasswork2023,mergeFromDocument,extractToolHints,snapshotDraft,validate,commit,validateProgram,get:number=>{const r=committedRecords.find(t=>t.number===Number(number));return r?{...r}:null;}};
 })();
 </script>
 <script>
@@ -777,7 +787,7 @@ N180 Y-13
 N185 Z-5.5
 N190 Y73
 N195 M30`;
-$('source').value=demo;
+$('source').value='';
 let cncHeightRevision=0;let steps=[],cursor=0,phase=1,running=false,raf=null,az=-2.35619449,el=.67,zoom=1,drag=null,stock={x:60,y:60,z:8},origin={x:0,y:0,z:0},diam={},nx=140,ny=140,h=new Float32Array(nx*ny),warnings=[];
 // Preview the first programmed G52 origin immediately after Load / simulate.
 // Playback still uses the executed modal state and updates the marker normally.
@@ -1223,8 +1233,8 @@ function cncInferNewSetup(program,raw){
  const sz=Math.max(5,Math.ceil(Math.max(0,-minZ)+5));
  return {sx,sy,sz,ox:10-minX,oy:10-minY,oz:0};
 }
-$('file').addEventListener('change',async e=>{
- const f=e.target.files?.[0];if(!f)return;
+async function cncImportProgramFile(f){
+ if(!f)return false;
  const serial=++cncImportSerial,guard=window.cncAutoUpdate;
  const token=guard?guard.beginImport('program'):null;
  const current=()=>serial===cncImportSerial&&(!guard||guard.acceptImport(token));
@@ -1235,7 +1245,7 @@ $('file').addEventListener('change',async e=>{
   else if(/\.docx$/i.test(f.name))raw=await docxText(await f.arrayBuffer());
   else if(/\.doc$/i.test(f.name))throw Error('Save legacy .doc as .docx first.');
   else raw=await f.text();
-  if(!current())return;
+  if(!current())return false;
   const program=extractGCode(raw);
   const hints=window.cncTools.extractToolHints(raw,program);
   if(!program.trim())throw Error('No G-code found. Tool-only documents cannot replace the machining program.');
@@ -1252,9 +1262,11 @@ $('file').addEventListener('change',async e=>{
   $('loadstatus').textContent=(loaded===false?'Imported, awaiting correction: ':'Imported ')+f.name+' · tools rebuilt · stock and G54 reset (estimated from toolpath; verify before machining).';
   $('toolstatus').textContent=toolMsg+' | Tool dimensions absent from source use default values and must be checked.';
   $('file').value='';
- }catch(err){if(current())$('loadstatus').textContent='Import error: '+err.message;}
+  return true;
+ }catch(err){if(current())$('loadstatus').textContent='Import error: '+err.message;return false;}
  finally{if(guard)guard.endImport(token);if(serial===cncImportSerial)$('file').value='';}
-},true);
+}
+$('file').addEventListener('change',e=>{void cncImportProgramFile(e.target.files?.[0]);},true);
 
 function cncExpandPrograms(blocks){
  const programs=new Map(), main=[], problems=[];
@@ -1698,7 +1710,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
  if(cursor!==0&&(!window.cncAutoUpdate||window.cncAutoUpdate.flush()))jump(0);
  event.target.value='';
 });
-cncLoadDrillTest();
+// Samples open only when selected from Programs.
 
 
 </script>
@@ -7238,4 +7250,144 @@ loadedText=editor.value;displayLocal();configure();
  .view .viewport .cube button.blank{visibility:hidden!important}
 }
 </style>
+<script id="cnc-program-library-script">
+(()=>{
+'use strict';
+const DB_NAME='cnc-studio-integrated-programs-test-v1', STORE='programs';
+const $=id=>document.getElementById(id);
+const uid=()=>('p-'+(crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)));
+const samples=[['face','Face/Mill'],['drill','Drill/Tap · MET 238 CW3'],['sub','Subprogram · Classwork 2']];
+let db=null, list=[], current='', dirty=false, suppress=0, busy=false, editRevision=0;
+const dataFields=['stockshape','threadsurface','sx','sy','sz','ox','oy','oz'];
+const css=`
+/* Integrated IndexedDB Programs controls. */
+.cnc-file-picker{display:none!important}
+#cnc-program-library{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 8px}
+#cnc-program-library .cnc-lib-label{font-weight:700;font-size:12px;white-space:nowrap}
+#cnc-program-library select{flex:1 1 115px;min-width:105px;max-width:100%;height:37px;font-size:12px;padding:5px 7px}
+#cnc-program-library button{height:37px;padding:6px 10px;white-space:nowrap;font-size:12px}
+#cnc-program-library button.primary{background:#087a9f;color:white}
+#cnc-program-library .cnc-lib-menu{position:relative}
+#cnc-program-library .cnc-lib-menu > summary{list-style:none;cursor:pointer;font-weight:700;border:1px solid #45617d;border-radius:7px;padding:7px 10px;min-height:37px;display:flex;align-items:center;justify-content:center;background:#25445f;color:white}
+#cnc-program-library .cnc-lib-menu > summary::-webkit-details-marker{display:none}
+#cnc-program-library .cnc-lib-pop{position:absolute;right:0;top:calc(100% + 5px);z-index:40;min-width:170px;background:#132338;border:1px solid #45617d;border-radius:8px;box-shadow:0 8px 18px #0006;padding:5px;display:grid;gap:4px}
+#cnc-program-library .cnc-lib-pop button{display:block;text-align:left;width:100%;background:#25445f}
+#cnc-program-library .cnc-lib-info{font-size:10px;color:#a9bed3;flex-basis:100%;min-height:0}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-label{color:#1c364e}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-menu>summary,
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop button{background:#eaf2f9;color:#19374e;border-color:#a9bed2}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop{background:#fff;border-color:#c7d5e2}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-info{color:#526b82}
+@media(max-width:540px){#cnc-program-library{gap:5px}#cnc-program-library button{padding:6px 9px}#cnc-program-library select{flex-basis:100%;order:1}#cnc-program-library .cnc-lib-label{order:0;flex:1}#cnc-program-library #cnc-lib-new,#cnc-program-library #cnc-lib-save,#cnc-program-library .cnc-lib-menu{order:2}}
+`;
+function el(tag,props={},text){const node=document.createElement(tag);for(const [k,v] of Object.entries(props))node.setAttribute(k,v);if(text!==undefined)node.textContent=text;return node;}
+function message(text){const n=$('cnc-lib-info');if(n)n.textContent=text||'';}
+function request(mode,callback){return new Promise((resolve,reject)=>{const t=db.transaction(STORE,mode);const req=callback(t.objectStore(STORE));t.oncomplete=()=>resolve(req?.result);t.onerror=()=>reject(t.error||Error('Database transaction failed'));t.onabort=()=>reject(t.error||Error('Database aborted'));});}
+function snapshot(id,name){const settings={};for(const field of dataFields)settings[field]=$(field)?.value??'';return {id,name,code:$('source').value,settings,tools:window.cncTools?.snapshotDraft?.()||[],updatedAt:new Date().toISOString()};}
+function apply(p){suppress++;try{
+  if(typeof window.cncTools?.restoreSnapshot==='function')window.cncTools.restoreSnapshot(p.tools||[]);
+  $('source').value=p.code||'';
+  for(const field of dataFields)if($(field)&&p.settings?.[field]!==undefined)$(field).value=String(p.settings[field]);
+  // Exactly one simulation rebuild, with G-code and tool data already applied.
+  if(typeof load==='function')load();else $('source').dispatchEvent(new Event('input',{bubbles:true}));
+  document.dispatchEvent(new Event('cnc-program-loaded'));
+ }finally{suppress--;}
+ dirty=false;current=p.id||'';editRevision++;
+ selectCurrent();message('');
+}
+function hasUnsaved(){return dirty&&!confirm('Discard unsaved changes to this program?');}
+async function refresh(){list=await request('readonly',s=>s.getAll());list.sort((a,b)=>a.name.localeCompare(b.name));const sel=$('cnc-lib-select');if(!sel)return;sel.replaceChildren(new Option('New / unsaved',''));for(const p of list)sel.add(new Option(p.name,p.id));selectCurrent();}
+function selectCurrent(){$('cnc-lib-select').value=current||'';}
+async function openProgram(id){if(busy)return;if(hasUnsaved()){selectCurrent();return;}const p=list.find(x=>x.id===id);if(!p){selectCurrent();return;}busy=true;try{apply(p);}finally{busy=false;}}
+function mark(){if(suppress)return;dirty=true;editRevision++;message('Unsaved changes');}
+async function save(forceAs=false){if(busy)return;if(window.cncAutoUpdate?.getState().importing)return message('Wait for the import to finish before saving');busy=true;try{
+ let id=current,name=list.find(p=>p.id===id)?.name||'Untitled program';
+ if(forceAs||!id||id.startsWith('sample:')){
+  const suggested=id.startsWith('sample:')?name+' - My Version':name;
+  const entered=prompt('Save program as:',suggested);
+  if(entered===null)return;
+  name=entered.trim().slice(0,100)||'Untitled program';id=uid();
+ }
+ const saved=snapshot(id,name),revision=editRevision;
+ await request('readwrite',s=>s.put(saved));
+ current=id;dirty=editRevision!==revision;await refresh();message(dirty?'Unsaved changes':'Saved locally');
+ }finally{busy=false;}}
+async function newProgram(){if(busy||hasUnsaved())return;apply({id:'',name:'New program',code:'',settings:{stockshape:'rect',threadsurface:'auto',sx:'60',sy:'60',sz:'15',ox:'30',oy:'30',oz:'0'},tools:[{number:1,type:'Flat end mill',diameter:10,fluteLength:20,angle:90,pitch:1,tipDiameter:0}]});message('New program');}
+async function rename(){if(busy)return;if(!current||current.startsWith('sample:'))return message('Save a copy of this sample to rename it');const p=list.find(x=>x.id===current);if(!p)return;const entered=prompt('Rename program:',p.name);if(!entered?.trim())return;p.name=entered.trim().slice(0,100);p.updatedAt=new Date().toISOString();await request('readwrite',s=>s.put(p));await refresh();message('Renamed');}
+async function duplicate(){await save(true);}
+async function remove(){if(busy||!current)return;if(current.startsWith('sample:'))return message('Built-in samples cannot be deleted');if(!confirm('Delete this saved program from this browser?'))return;await request('readwrite',s=>s.delete(current));current='';await refresh();await newProgram();message('Deleted saved program');}
+function downloadFile(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+function exportNC(){const p=snapshot(current,'');const name=(list.find(x=>x.id===current)?.name||'New Program').replace(/[^a-z0-9_.-]+/gi,'_');downloadFile(name+'.nc',p.code,'text/plain');}
+function backupJSON(){const p=snapshot(current,list.find(x=>x.id===current)?.name||'New Program');downloadFile('cnc-studio-project.json',JSON.stringify(p,null,2),'application/json');}
+async function importProgram(file){if(!file||busy||hasUnsaved())return;
+ if(/\.json$/i.test(file.name)){
+  const revision=editRevision,guard=window.cncAutoUpdate,token=guard?.beginImport('program');
+  try{
+   const p=JSON.parse(await file.text());
+   if(revision!==editRevision||(guard&&!guard.acceptImport(token)))return message('Import cancelled because the program changed');
+   if(!p||typeof p.code!=='string'||!Array.isArray(p.tools)||!p.settings||typeof p.settings!=='object'||Array.isArray(p.settings))throw Error('Not a compatible CNC Studio project backup');
+   guard?.endImport(token);p.id='';apply(p);
+  }finally{guard?.endImport(token);}
+ }else{
+  // Reuse CNC Studio's document extraction, tool hints, setup inference and import guard.
+  const imported=await cncImportProgramFile(file);
+  if(!imported){message($('loadstatus')?.textContent||'Import cancelled');return;}
+  current='';selectCurrent();
+ }
+ mark();message('Imported — Save to keep in this browser');}
+function captureBuiltInSample(kind){if(kind==='drill')cncLoadDrillTest();else cncLoadSample(kind);const p=snapshot('sample:'+kind,samples.find(([k])=>k===kind)[1]);p.builtin=true;return p;}
+async function seedSamples(){const currentIds=new Set(list.map(p=>p.id));if(samples.every(([kind])=>currentIds.has('sample:'+kind)))return;
+ message('Preparing built-in samples…');
+ const original=snapshot(current,'Current'),wasDirty=dirty,pending=[];
+ // Capture and restore in one task so samples never become the startup program.
+ // Restore before waiting for storage, preserving any draft already being typed.
+ suppress++;
+ try{
+  for(const [kind] of samples){if(currentIds.has('sample:'+kind))continue;pending.push(captureBuiltInSample(kind));}
+ }finally{
+  try{apply(original);}finally{dirty=wasDirty;suppress--;}
+ }
+ for(const p of pending)await request('readwrite',s=>s.put(p));
+ await refresh();
+}
+function setMenuAction(menu,id,callback){$(id).addEventListener('click',()=>{menu.open=false;Promise.resolve().then(callback).catch(e=>message('Error: '+e.message));});}
+async function start(){const src=$('source'),picker=document.querySelector('.cnc-file-picker');if(!src||!picker)throw Error('Could not find CNC Studio import controls');
+ const style=el('style',{id:'cnc-indexeddb-library-theme'},css);document.head.append(style);
+ const bar=el('div',{id:'cnc-program-library'});bar.append(el('label',{for:'cnc-lib-select',class:'cnc-lib-label'},'Programs'));
+ const sel=el('select',{id:'cnc-lib-select','aria-label':'Saved CNC programs'});sel.add(new Option('New / unsaved',''));bar.append(sel);
+ const n=el('button',{type:'button',id:'cnc-lib-new',class:'btn'},'+ New');const saveButton=el('button',{type:'button',id:'cnc-lib-save',class:'btn primary'},'Save');bar.append(n,saveButton);
+ const menu=el('details',{class:'cnc-lib-menu',id:'cnc-lib-menu'});menu.append(el('summary',{},'•••'));
+ const pop=el('div',{class:'cnc-lib-pop'});for(const [id,label] of [['save-as','Save As'],['rename','Rename'],['duplicate','Duplicate'],['delete','Delete'],['export','Export .nc'],['backup','Backup project'],['import','Import file']])pop.append(el('button',{type:'button',id:'cnc-lib-'+id},label));menu.append(pop);bar.append(menu);
+ bar.append(el('span',{id:'cnc-lib-info',class:'cnc-lib-info','aria-live':'polite'},''));
+ picker.insertAdjacentElement('beforebegin',bar);
+ const oldSample=$('cnc-sample-program');if(oldSample)oldSample.closest('label')?.setAttribute('hidden','');
+ sel.addEventListener('change',()=>openProgram(sel.value).catch(e=>message('Error: '+e.message)));
+ n.addEventListener('click',()=>newProgram().catch(e=>message('Error: '+e.message)));
+ saveButton.addEventListener('click',()=>save().catch(e=>message('Error: '+e.message)));
+ setMenuAction(menu,'cnc-lib-save-as',()=>save(true));setMenuAction(menu,'cnc-lib-rename',rename);setMenuAction(menu,'cnc-lib-duplicate',duplicate);setMenuAction(menu,'cnc-lib-delete',remove);setMenuAction(menu,'cnc-lib-export',exportNC);setMenuAction(menu,'cnc-lib-backup',backupJSON);
+ const libraryUpload=el('input',{type:'file',id:'cnc-lib-upload',accept:'.nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf,.json',hidden:''});
+ bar.append(libraryUpload);
+ setMenuAction(menu,'cnc-lib-import',()=>libraryUpload.click());
+ libraryUpload.addEventListener('change',async()=>{try{await importProgram(libraryUpload.files?.[0]);}catch(e){message('Import failed: '+e.message)}finally{libraryUpload.value='';}});
+ src.addEventListener('input',mark);for(const field of dataFields)$(field)?.addEventListener('input',mark);
+ document.addEventListener('cnc-tools-change',mark);
+ // The integrated app starts blank; do not erase input entered during startup.
+ if(src.value==='')await newProgram();else mark();
+ const opening=indexedDB.open(DB_NAME,1);
+ db=await new Promise((resolve,reject)=>{opening.onupgradeneeded=()=>{if(!opening.result.objectStoreNames.contains(STORE))opening.result.createObjectStore(STORE,{keyPath:'id'})};opening.onsuccess=()=>resolve(opening.result);opening.onerror=()=>reject(opening.error)});
+ await refresh();await seedSamples();
+ message(dirty?'Unsaved changes':'New program');
+}
+function boot(){start().catch(err=>{
+ console.error('[CNC Library]',err);
+ const bar=$('cnc-program-library');if(bar)bar.style.display='none';
+ $('cnc-indexeddb-library-theme')?.remove();
+ $('cnc-sample-program')?.closest('label')?.removeAttribute('hidden');
+ const picker=document.querySelector('.cnc-file-picker');if(picker)picker.style.display='';
+ if($('loadstatus'))$('loadstatus').textContent='Saved programs unavailable: '+err.message+'. You can still import files or open samples.';
+});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,50));else setTimeout(boot,50);
+})();
+
+</script>
 </body></html>
