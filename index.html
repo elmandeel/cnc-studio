@@ -6985,7 +6985,7 @@ cloud.append(cloudTitle,cloudStatus,challenge,cloudResults);zone.append(cloud);
 
 const button=document.getElementById('cnc-unified-review');
 const automatic=document.getElementById('cnc-unified-auto');
-const FOCUS_DELAY=6000,MIN_INTERVAL=30000,MAX_PER_HOUR=12;
+const FOCUS_DELAY=6000,MAX_PER_HOUR=12;
 const DEFAULT_RULES="Validate Fanuc 31i milling G-code in STRICT CONFIRMED-ERROR-ONLY mode. Return findings ONLY for demonstrably incorrect code, with an exact original N block (and O program when relevant), the problematic G-code/address, and a specific reason that follows from the actual code and known Fanuc semantics. Severity must be error. Enforce this CNC Studio MET 238 course rule: after every M6 tool change, G43 must be activated with the correct H tool-length offset before the first tool movement; G43 in the same block as M6 is valid. If a move occurs first, report it as an error citing the exact N block, even if other Fanuc setups might allow movement without G43. Check complete-program context, modal states, tool changes, canned cycles, tapping feed mode (G94/G95), F and S, arcs, compensation, offsets and subprograms before judging a block. Treat N-number increments of 5, semicolons, formatting, preferred styles, nonstandard but valid sequences, recommendations, missing optional commands, and controller-dependent possibilities as NOT errors. Do not flag merely unusual or potentially risky moves, unverified feeds/speeds, machine setup assumptions, or issues requiring an unavailable drawing, tool specification or machine parameters. The local diagnostics are clues, not evidence; independently verify them. If evidence is insufficient, omit the finding. No warnings, informational findings, advice, suggestions, or speculative safety claims. If no errors are proven, return findings: [] and summary: No confirmed G-code errors found. Never claim machine-safety certification.";
 const WORD=/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g;
 const ALLOWED=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
@@ -7062,10 +7062,8 @@ function reviewAfter(reason='edit',delay=FOCUS_DELAY){
  clearTimeout(localTimer);clearTimeout(cloudTimer);
  localTimer=setTimeout(displayLocal,reason==='edit'?160:0);
  if(!config||!automatic.checked||editor.value.trim().length<4)return;
- const cooldown=Math.max(0,MIN_INTERVAL-(Date.now()-lastCloudAt));
- const wait=Math.max(delay,cooldown);
- say('Automatic review scheduled'+(cooldown>delay?' after cloud quota cooldown.':' after typing stops.'));
- cloudTimer=setTimeout(()=>review(false),wait);
+ say('Automatic review scheduled after typing stops.');
+ cloudTimer=setTimeout(()=>review(false),delay);
 }
 function showAI(report){
  cloudResults.replaceChildren();
@@ -7130,7 +7128,6 @@ async function review(manual){
  const now=Date.now();
  hourly=hourly.filter(t=>now-t<3600000);
  if(hourly.length>=MAX_PER_HOUR){say('Cloud quota: maximum 12 reviews this hour. Local rule checks remain active.');return;}
- if(now-lastCloudAt<MIN_INTERVAL){if(!manual)reviewAfter('cooldown',MIN_INTERVAL-(now-lastCloudAt));return;}
  const token=window.turnstile?.getResponse(widgetId);
  if(!token){say('Cloud AI waiting for Cloudflare verification. Local rule checks remain active.');return;}
  const val=id=>document.getElementById(id)?.value||'';
