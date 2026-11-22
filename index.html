@@ -1393,6 +1393,9 @@ function parse(workOrigin=origin){
  if(arc&&hasMove&&s.plane!==17)warn.push(label+': only XY G17 arcs supported');
  if(s.comp)warn.push(label+': G'+s.comp+' requires controller verification');
  out.push({n:(item.origin==='Main'?'':item.origin+' · ')+(n||String(out.length+1)),code:clean,sourceLine:item.sourceLine,location,before,after:{...s},hasMove,mode:s.mode,arc:arc&&hasMove,params:p,ends:m.includes(30)||m.includes(2),call:!!item.call});
+ // A completed M30/M2 program is finished; do not leak its active G41/G42
+ // into another independent O program. G40 is not required to render its cut.
+ if(m.includes(30)||m.includes(2))s.comp=0;
  }
  return {out,warn:[...new Set(warn)]};
 }
@@ -3316,7 +3319,13 @@ function crcXYDir(e){let a=crcPoint(e.before),b=crcPoint(e.after);if(!a||!b)retu
 function crcOffset(p,d,r,comp){let sign=comp===41?1:-1;return {x:p.x-sign*d.y*r,y:p.y+sign*d.x*r,z:p.z};}
 function crcContour(e,comp){return e&&e.mode===1&&e.hasMove&&!e.arc&&e.before.comp===comp&&e.after.comp===comp&&crcXYDir(e);}
 function crcNeighbor(idx,comp,forward){for(let i=idx+(forward?1:-1);i>=0&&i<steps.length;i+=(forward?1:-1)){
- let e=steps[i];if(!e.hasMove)continue;
+ const e=steps[i];
+ // Non-motion blocks are modal updates. Stop at a cancellation, change of
+ // compensation side, tool change or program boundary; never join across them.
+ if(!e.hasMove){
+  if(e.before.comp!==e.after.comp||e.ends||/\\bM\\s*(?:0?6|0?2|30)\\b/i.test(e.code||''))return null;
+  continue;
+ }
  return crcContour(e,comp)?e:null;
 }return null;}
 function crcJoin(e1,e2,comp){
@@ -3354,6 +3363,9 @@ segments=function(e){
  let a=crcOffset(p,d,radius(e.after),c),b=crcOffset(q,d,radius(e.after),c);
  if(prev){let j=crcJoin(prev,e,c);if(j)a={...j,z:p.z};}
  if(next){let j=crcJoin(e,next,c);if(j)b={...j,z:q.z};}
+ // When G40 is omitted, the cutter remains offset at the last compensated
+ // endpoint. Do NOT pull B back to the unoffset programmed endpoint.
+ // A subsequent G40 with an actual move gets its own cancellation lead-out.
  return [[a,b]];
 };
 // Circular G41/G42 compensation uses concentric cutter-center arcs.
