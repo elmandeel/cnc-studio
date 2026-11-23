@@ -466,7 +466,7 @@ html[data-cnc-theme="light"] .cnc-import-controls .cnc-file-trigger:hover .cnc-f
   width:18px!important;
   height:18px!important;
 }
-</style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">Import a file or open a sample program</div><div class="cnc-import-controls"><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M4 16v4h16v-4"/></svg></span><span>Choose File</span></span></label><label class="cnc-sample-label" for="cnc-sample-program"><select id="cnc-sample-program" aria-label="Sample Programs"><option value="" selected>Sample Programs…</option><option value="face">Face/Mill</option><option value="drill">Drill/Tap</option><option value="sub">Subprogram</option></select></label></div><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button></div><div id="cnc-auto-status" role="status" aria-live="polite" data-state="ready">Preview up to date</div><p id="loadstatus" class="small"></p></div></section><section class="panel cnc-advanced"><div class="hd">2 · Stock dimensions <span class="small">millimeters</span></div><div class="body"><div class="inputs"><label>Stock shape<select id="stockshape"><option value="rect">Rectangular / square</option><option value="cylinder">Cylindrical (vertical axis)</option></select></label><label>Thread surface<select id="threadsurface"><option value="auto" selected>Auto-detect</option><option value="internal">Internal thread</option><option value="external">External thread</option></select></label><label id="stockxlabel">X length / diameter<input id="sx" type="number" min="1" max="500" step="1" value="60"></label><label>Y width<input id="sy" type="number" min="1" max="500" step="1" value="60"></label><label>Z thickness<input id="sz" type="number" min="0.1" max="200" step="0.5" value="8"></label></div></div></section><section class="panel cnc-advanced"><div class="hd">3 · G54 location <span class="small">relative to stock</span></div><div class="body"><div class="inputs"><label>X from left<input id="ox" type="number" step="0.5" value="0"></label><label>Y from front<input id="oy" type="number" step="0.5" value="0"></label><label>Z from stock top<input id="oz" type="number" step="0.5" value="0"></label></div></div></section><section class="panel cnc-advanced" id="cnc-reference-setup"><div class="hd">Machine reference (G28) <span class="small">virtual machine · mm</span></div><div class="body"><div class="inputs"><label>Reference X<input id="hx" aria-label="Machine reference X" type="number" step="1" value="0"></label><label>Reference Y<input id="hy" aria-label="Machine reference Y" type="number" step="1" value="0"></label><label>Reference Z<input id="hz" aria-label="Machine reference Z" type="number" step="1" value="100"></label></div><p class="small">X/Y are measured from the stock left/front; Z from the stock top. G28 returns only the axes named in the block.</p></div></section><section class="panel cnc-advanced"><div class="hd">4 · Tool library <span class="small" id="toolcount">0 tools</span></div><div class="body"><div class="buttons" style="margin-bottom:9px"><button class="btn primary" type="button" id="addtool">+ Add tool</button><button class="btn" type="button" id="addthreadmill">+ Thread mill</button><button class="btn" type="button" id="toolimport">Import JSON</button><button class="btn" type="button" id="toolexport">Export JSON</button><input id="tooljson" type="file" accept=".json" hidden></div><div id="toollist" style="display:grid;gap:8px;max-height:390px;overflow:auto"></div><div class="buttons" style="margin-top:10px"><button class="btn primary" id="apply">Apply setup &amp; reset</button></div><div id="toolstatus" class="small" role="status" hidden></div></div></section><section class="panel cnc-code-panel"><div class="hd">Loaded program (exact source) <span id="count" class="small">0 lines</span></div><div id="lines" class="code"></div><details style="padding:8px 12px"><summary style="cursor:pointer">Expanded execution trace (simulation only)</summary><div id="cnc-expanded-lines" class="code" style="max-height:340px;overflow:auto"></div></details></section></aside><div class="right"><div class="workspacebar"><strong>MANUFACTURE <span style="color:#98aec0;font-weight:400">/ Toolpath Simulation</span></strong><div class="buttons"><button class="btn active" data-layout="3d">▣ 3D view</button><button class="btn" data-layout="2d">▤ 2D view</button><button class="btn" id="cnc-split-view" type="button">▦ Split view</button></div><span id="ws-status">G54 · mm · Stock preview</span></div><div class="views" id="workspaces"><section class="panel view"><div class="hd">2D · Toolpaths + machined contours <span class="small" id="op">Ready</span></div><div class="viewtoolbar"><button id="fit2">⌗ Fit</button><button id="grid2" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">TOP / XY</span></div><div class="viewport"><div class="viewport-label">TOP VIEW · XY PLANE</div><canvas id="flat" width="660" height="570"></canvas><div class="axis-symbol"><i class="xx">X →</i><i class="yy">Y ↑</i></div></div><div class="viewfoot"><span>2D: live toolpath + vector contours</span><span>Colored: feed moves by tool</span><span>Dashed: rapid moves</span><span>3D: material removal</span></div></section><section class="panel view"><div class="hd">3D · Tool & material removal <span class="small">Drag to rotate · wheel zoom</span></div><div class="viewtoolbar"><button data-camera="iso" class="selected">◈ Isometric</button><button data-camera="top">Top</button><button data-camera="front">Front</button><button data-camera="right">Right</button><button id="fit3">⌗ Fit</button><button id="grid3" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">ORBIT · ZOOM</span></div><div class="viewport"><div class="viewport-label">MODEL · MATERIAL REMOVAL</div><canvas id="three" width="660" height="570"></canvas><div class="cube"><button class="blank"></button><button data-camera="top" class="top">Z</button><button class="blank"></button><button data-camera="front">F</button><button data-camera="iso">⌂</button><button data-camera="right">R</button><button class="blank"></button><button data-camera="bottom">−Z</button><button class="blank"></button></div><div class="axis-symbol"><i class="xx">X</i><i class="yy">Y</i><i class="zz">Z</i></div></div><div class="viewfoot" id="cncOperationLegend" style="display:flex;flex-wrap:wrap;gap:8px">Tool color legend (experimental; stock cut colors not yet implemented).</div></section></div><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><section class="panel"><div class="hd">Live CNC state <span class="tag" id="mode">READY</span></div><div class="stats"><div><small>X</small><b id="x">—</b></div><div><small>Y</small><b id="y">—</b></div><div><small>Z</small><b id="z">—</b></div><div><small>Tool</small><b id="tool">—</b></div><div><small>Spindle</small><b id="rpm">OFF</b></div><div><small>Feed</small><b id="feed">—</b></div></div><div class="status"><b id="cmd">Ready</b><p id="description">Load your CNC program, then play or select individual lines.</p><div class="warning" id="messages"></div></div><div class="note"><b>Educational simulation:</b> G00 is noncutting travel; G01 linear interpolation and G02/G03 XY-plane arcs remove material using flat tool diameter and tool-tip depth. Supports G20/G21, G90/G91, modal axes, and T/M/S/F words. M98/M99 subprogram execution (including packed repetition P values), G02/G03 arcs, and linear/arc G41/G42 approximations are available. M6 moves to the simulator’s fixed Z30 mm clearance before changing tools; G28 returns selected axes via an intermediate point to the reference set in Advanced settings; G43 tool-length tables, true chamfer-tool solid geometry, controller-specific canned-cycle behavior, machine collisions, stock fixtures, and controller-specific logic are <b>not</b> verified. Tool paths are interpreted, not safe to run on a real CNC without verification.</div></section></div></main>
+</style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">Import a file or open a sample program</div><div class="cnc-import-controls"><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M4 16v4h16v-4"/></svg></span><span>Choose File</span></span></label><label class="cnc-sample-label" for="cnc-sample-program"><select id="cnc-sample-program" aria-label="Sample Programs"><option value="" selected>Sample Programs…</option><option value="face">Face/Mill</option><option value="drill">Drill/Tap</option><option value="sub">Subprogram</option></select></label></div><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button></div><div id="cnc-auto-status" role="status" aria-live="polite" data-state="ready">Preview up to date</div><p id="loadstatus" class="small"></p></div></section><section class="panel cnc-advanced"><div class="hd">2 · Stock dimensions <span class="small">millimeters</span></div><div class="body"><div class="inputs"><label>Stock shape<select id="stockshape"><option value="rect">Rectangular / square</option><option value="cylinder">Cylindrical (vertical axis)</option></select></label><label>Thread surface<select id="threadsurface"><option value="auto" selected>Auto-detect</option><option value="internal">Internal thread</option><option value="external">External thread</option></select></label><label id="stockxlabel">X length / diameter<input id="sx" type="number" min="1" max="500" step="1" value="60"></label><label>Y width<input id="sy" type="number" min="1" max="500" step="1" value="60"></label><label>Z thickness<input id="sz" type="number" min="0.1" max="200" step="0.5" value="8"></label></div></div></section><section class="panel cnc-advanced"><div class="hd">3 · G54 location <span class="small">relative to stock</span></div><div class="body"><div class="inputs"><label>X from left<input id="ox" type="number" step="0.5" value="0"></label><label>Y from front<input id="oy" type="number" step="0.5" value="0"></label><label>Z from stock top<input id="oz" type="number" step="0.5" value="0"></label></div></div></section><section class="panel cnc-advanced" id="cnc-reference-setup"><div class="hd">Machine reference (G28) <span class="small">virtual machine · mm</span></div><div class="body"><div class="inputs"><label>Reference X<input id="hx" aria-label="Machine reference X" type="number" step="1" value="0"></label><label>Reference Y<input id="hy" aria-label="Machine reference Y" type="number" step="1" value="0"></label><label>Reference Z<input id="hz" aria-label="Machine reference Z" type="number" step="1" value="50"></label></div><p class="small">X/Y are measured from the stock left/front; Z from the stock top. G28 returns only the axes named in the block.</p></div></section><section class="panel cnc-advanced"><div class="hd">4 · Tool library <span class="small" id="toolcount">0 tools</span></div><div class="body"><div class="buttons" style="margin-bottom:9px"><button class="btn primary" type="button" id="addtool">+ Add tool</button><button class="btn" type="button" id="addthreadmill">+ Thread mill</button><button class="btn" type="button" id="toolimport">Import JSON</button><button class="btn" type="button" id="toolexport">Export JSON</button><input id="tooljson" type="file" accept=".json" hidden></div><div id="toollist" style="display:grid;gap:8px;max-height:390px;overflow:auto"></div><div class="buttons" style="margin-top:10px"><button class="btn primary" id="apply">Apply setup &amp; reset</button></div><div id="toolstatus" class="small" role="status" hidden></div></div></section><section class="panel cnc-code-panel"><div class="hd">Loaded program (exact source) <span id="count" class="small">0 lines</span></div><div id="lines" class="code"></div><details style="padding:8px 12px"><summary style="cursor:pointer">Expanded execution trace (simulation only)</summary><div id="cnc-expanded-lines" class="code" style="max-height:340px;overflow:auto"></div></details></section></aside><div class="right"><div class="workspacebar"><strong>MANUFACTURE <span style="color:#98aec0;font-weight:400">/ Toolpath Simulation</span></strong><div class="buttons"><button class="btn active" data-layout="3d">▣ 3D view</button><button class="btn" data-layout="2d">▤ 2D view</button><button class="btn" id="cnc-split-view" type="button">▦ Split view</button></div><span id="ws-status">G54 · mm · Stock preview</span></div><div class="views" id="workspaces"><section class="panel view"><div class="hd">2D · Toolpaths + machined contours <span class="small" id="op">Ready</span></div><div class="viewtoolbar"><button id="fit2">⌗ Fit</button><button id="grid2" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">TOP / XY</span></div><div class="viewport"><div class="viewport-label">TOP VIEW · XY PLANE</div><canvas id="flat" width="660" height="570"></canvas><div class="axis-symbol"><i class="xx">X →</i><i class="yy">Y ↑</i></div></div><div class="viewfoot"><span>2D: live toolpath + vector contours</span><span>Colored: feed moves by tool</span><span>Dashed: rapid moves</span><span>3D: material removal</span></div></section><section class="panel view"><div class="hd">3D · Tool & material removal <span class="small">Drag to rotate or pan · wheel zoom</span></div><div class="viewtoolbar"><button data-camera="iso" class="selected">◈ Isometric</button><button data-camera="top">Top</button><button data-camera="front">Front</button><button data-camera="right">Right</button><button id="fit3">⌗ Fit</button><button id="cnc-3d-rotate" type="button" class="selected" aria-pressed="true" title="Drag to rotate the 3D view">Rotate</button><button id="cnc-3d-pan" type="button" aria-pressed="false" title="Drag to move the 3D view. You can also hold Shift or drag with the middle mouse button.">Pan</button><button id="cnc-3d-reset" type="button" title="Recenter the 3D view and reset its angle and zoom">Reset view</button><button id="grid3" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">ROTATE · PAN · ZOOM</span></div><div class="viewport"><div class="viewport-label">MODEL · MATERIAL REMOVAL</div><canvas id="three" width="660" height="570"></canvas><div class="cube"><button class="blank"></button><button data-camera="top" class="top">Z</button><button class="blank"></button><button data-camera="front">F</button><button data-camera="iso">⌂</button><button data-camera="right">R</button><button class="blank"></button><button data-camera="bottom">−Z</button><button class="blank"></button></div><div class="axis-symbol"><i class="xx">X</i><i class="yy">Y</i><i class="zz">Z</i></div></div><div class="viewfoot" id="cncOperationLegend" style="display:flex;flex-wrap:wrap;gap:8px">Tool color legend (experimental; stock cut colors not yet implemented).</div></section></div><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><section class="panel"><div class="hd">Live CNC state <span class="tag" id="mode">READY</span></div><div class="stats"><div><small>X</small><b id="x">—</b></div><div><small>Y</small><b id="y">—</b></div><div><small>Z</small><b id="z">—</b></div><div><small>Tool</small><b id="tool">—</b></div><div><small>Spindle</small><b id="rpm">OFF</b></div><div><small>Feed</small><b id="feed">—</b></div></div><div class="status"><b id="cmd">Ready</b><p id="description">Load your CNC program, then play or select individual lines.</p><div class="warning" id="messages"></div></div><div class="note"><b>Educational simulation:</b> G00 is noncutting travel; G01 linear interpolation and G02/G03 XY-plane arcs remove material using flat tool diameter and tool-tip depth. Supports G20/G21, G90/G91, modal axes, and T/M/S/F words. M98/M99 subprogram execution (including packed repetition P values), G02/G03 arcs, and linear/arc G41/G42 approximations are available. M6 moves to the simulator’s fixed Z30 mm clearance before changing tools; G28 returns selected axes via an intermediate point to the reference set in Advanced settings; G43 tool-length tables, true chamfer-tool solid geometry, controller-specific canned-cycle behavior, machine collisions, stock fixtures, and controller-specific logic are <b>not</b> verified. Tool paths are interpreted, not safe to run on a real CNC without verification.</div></section></div></main>
 <script>/*!
 
 JSZip v3.10.1 - A JavaScript class for generating and reading zip files
@@ -789,6 +789,16 @@ N190 Y73
 N195 M30`;
 $('source').value='';
 let cncHeightRevision=0;let steps=[],cursor=0,phase=1,running=false,raf=null,az=-2.35619449,el=.67,zoom=1,drag=null,stock={x:60,y:60,z:8},origin={x:0,y:0,z:0},diam={},nx=140,ny=140,h=new Float32Array(nx*ny),warnings=[];
+// Screen-space camera pan is independent of CNC coordinates and render resolution.
+const cnc3DNavigation={mode:'rotate',panX:0,panY:0};
+function cncPan3D(canvas,dx,dy){
+ if(!Number.isFinite(dx)||!Number.isFinite(dy))return;
+ const rect=canvas.getBoundingClientRect();
+ if(!(rect.width>0&&rect.height>0))return;
+ cnc3DNavigation.panX+=dx/rect.width;
+ cnc3DNavigation.panY+=dy/rect.height;
+}
+function cncReset3DPan(){cnc3DNavigation.panX=0;cnc3DNavigation.panY=0;}
 // Preview the first programmed G52 origin immediately after Load / simulate.
 // Playback still uses the executed modal state and updates the marker normally.
 let cncG52LoadPreview=null;
@@ -1311,7 +1321,7 @@ function cncExpandPrograms(blocks){
 
 // Virtual machine reference in the same stock/world frame used by G53, always mm.
 // It is a machine setup value, independent of G54/G52 and the M6 clearance.
-const CNC_REFERENCE_DEFAULT=Object.freeze({x:0,y:0,z:100});
+const CNC_REFERENCE_DEFAULT=Object.freeze({x:0,y:0,z:50});
 const CNC_TOOL_CHANGE_Z=30;
 function cncReferenceReturnError(g,p){
  if(!g.includes(28))return '';
@@ -1611,7 +1621,7 @@ function project(x,y,z){const unit=370/Math.max(stock.x,stock.y),xx=x-stock.x/2,
 function polygon(pts,fill,stroke){g3.beginPath();pts.forEach((p,i)=>i?g3.lineTo(...p):g3.moveTo(...p));g3.closePath();g3.fillStyle=fill;g3.fill();if(stroke){g3.strokeStyle=stroke;g3.lineWidth=.5;g3.stroke();}}
 function draw3(s){g3.clearRect(0,0,c3.width,c3.height);let bg=g3.createLinearGradient(0,0,0,c3.height);bg.addColorStop(0,'#32485b');bg.addColorStop(1,'#182a39');g3.fillStyle=bg;g3.fillRect(0,0,c3.width,c3.height);if(showGrid3){let span=Math.max(stock.x,stock.y)*1.6,step=Math.max(1,Math.pow(10,Math.floor(Math.log10(span/10))));g3.strokeStyle='#94aaba25';g3.lineWidth=1;for(let k=-span;k<=span;k+=step){g3.beginPath();g3.moveTo(...project(k,k*0-span,-stock.z-1));g3.lineTo(...project(k,span*2,-stock.z-1));g3.stroke();g3.beginPath();g3.moveTo(...project(-span,k,-stock.z-1));g3.lineTo(...project(span*2,k,-stock.z-1));g3.stroke();}}const stride=Math.max(1,Math.ceil(Math.max(nx,ny)/65)),tiles=[];for(let j=0;j<ny-1;j+=stride)for(let i=0;i<nx-1;i+=stride){let ii=Math.min(nx-1,i+stride),jj=Math.min(ny-1,j+stride),x=i*stock.x/(nx-1),X=ii*stock.x/(nx-1),y=j*stock.y/(ny-1),Y=jj*stock.y/(ny-1),a=h[j*nx+i],b=h[j*nx+ii],c=h[jj*nx+ii],d=h[jj*nx+i],depth=((x+X-stock.x)*Math.sin(az)+(y+Y-stock.y)*Math.cos(az))/2;tiles.push({depth,pts:[project(x,y,a),project(X,y,b),project(X,Y,c),project(x,Y,d)],z:(a+b+c+d)/4});}tiles.sort((a,b)=>b.depth-a.depth);for(const t of tiles)polygon(t.pts,color(t.z));
 for(const [x1,y1,x2,y2] of [[0,0,stock.x,0],[stock.x,0,stock.x,stock.y],[stock.x,stock.y,0,stock.y],[0,stock.y,0,0]]){let depth=((x1+x2-stock.x)*Math.sin(az)+(y1+y2-stock.y)*Math.cos(az))/2;if(depth<0)continue;let pts=[];for(let i=0;i<=28;i++){let t=i/28,x=x1+(x2-x1)*t,y=y1+(y2-y1)*t,ix=Math.min(nx-1,Math.round(x/stock.x*(nx-1))),iy=Math.min(ny-1,Math.round(y/stock.y*(ny-1)));pts.push(project(x,y,h[iy*nx+ix]));}pts.push(project(x2,y2,-stock.z),project(x1,y1,-stock.z));polygon(pts,'#345168','#5b7185');}
-g3.strokeStyle='#d1dde9';g3.lineWidth=1;g3.beginPath();[[0,0],[stock.x,0],[stock.x,stock.y],[0,stock.y],[0,0]].forEach(([x,y],i)=>i?g3.lineTo(...project(x,y,0)):g3.moveTo(...project(x,y,0)));g3.stroke();if(s.x!=null&&s.y!=null){let x=s.x+origin.x,y=s.y+origin.y,z=(s.z??0)+origin.z,r=radius(s),pts=[];for(let i=0;i<=40;i++){let a=i*Math.PI*2/40;pts.push(project(x+r*Math.cos(a),y+r*Math.sin(a),z));}g3.beginPath();pts.forEach((p,i)=>i?g3.lineTo(...p):g3.moveTo(...p));g3.strokeStyle='#ffbf72';g3.lineWidth=2;g3.stroke();g3.strokeStyle='#f6e0a8';g3.lineWidth=4;g3.beginPath();g3.moveTo(...project(x,y,z));g3.lineTo(...project(x,y,z+Math.min(stock.z*1.5,10)));g3.stroke();}g3.fillStyle='#c7d9eb';g3.font='13px system-ui';g3.fillText('ORBIT · ZOOM',13,24);g3.fillText(`Stock bottom Z = −${stock.z} mm`,13,548);}
+g3.strokeStyle='#d1dde9';g3.lineWidth=1;g3.beginPath();[[0,0],[stock.x,0],[stock.x,stock.y],[0,stock.y],[0,0]].forEach(([x,y],i)=>i?g3.lineTo(...project(x,y,0)):g3.moveTo(...project(x,y,0)));g3.stroke();if(s.x!=null&&s.y!=null){let x=s.x+origin.x,y=s.y+origin.y,z=(s.z??0)+origin.z,r=radius(s),pts=[];for(let i=0;i<=40;i++){let a=i*Math.PI*2/40;pts.push(project(x+r*Math.cos(a),y+r*Math.sin(a),z));}g3.beginPath();pts.forEach((p,i)=>i?g3.lineTo(...p):g3.moveTo(...p));g3.strokeStyle='#ffbf72';g3.lineWidth=2;g3.stroke();g3.strokeStyle='#f6e0a8';g3.lineWidth=4;g3.beginPath();g3.moveTo(...project(x,y,z));g3.lineTo(...project(x,y,z+Math.min(stock.z*1.5,10)));g3.stroke();}g3.fillStyle='#c7d9eb';g3.font='13px system-ui';g3.fillText('ROTATE · PAN · ZOOM',13,24);g3.fillText(`Stock bottom Z = −${stock.z} mm`,13,548);}
 function cnc2DLiveFrame(n,f){
   if(!c2||!g2)return;
   // Never synchronously project the full stock while 3D focus is selected.
@@ -1769,7 +1779,7 @@ $('cnc-stop-edit').onclick=()=>{stopbox.classList.remove('open');if(cncFault)cnc
 
 $('load').onclick=load;$('apply').onclick=load;
 $('prev').onclick=()=>{if(cncProgramText.begin())jump(cursor-1);};$('next').onclick=()=>{if(cncProgramText.begin())jump(cursor+1);};$('reset').onclick=()=>jump(0);$('seek').oninput=e=>{const target=+e.target.value;if(cncProgramText.begin())jump(target);};$('resolution').onchange=()=>render();$('speed').oninput=e=>$('speedvalue').textContent=e.target.value+'×';$('play').onclick=()=>{if(running){stop();return;}if(!cncProgramText.begin())return;if(cursor>=steps.length)cursor=0;let blocker=cncIssues.find(d=>d.step<0||d.step===cursor);if(blocker){cncInterlock(blocker);return;}running=true;$('play').textContent='❚❚ Pause';nextFrame();};document.querySelectorAll('[data-layout]').forEach(b=>b.onclick=()=>{const v=b.dataset.layout,el=$('workspaces');el.classList.toggle('focus-3d',v==='3d');el.classList.toggle('focus-2d',v==='2d');document.querySelectorAll('[data-layout]').forEach(x=>x.classList.toggle('active',x===b));draw3(at(cursor,1));});
-function camera(v){if(v==='iso'){az=-2.35619449;el=.67;zoom=1;}else if(v==='top'){az=0;el=1.5706;}else if(v==='front'){az=0;el=.001;}else if(v==='right'){az=Math.PI/2;el=.001;}else if(v==='bottom'){az=Math.PI;el=-1.55;}document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('selected',b.dataset.camera===v));draw3(at(cursor,1));}
+function camera(v){if(v==='iso'){az=-2.35619449;el=.67;zoom=1;cncReset3DPan();}else if(v==='top'){az=0;el=1.5706;}else if(v==='front'){az=0;el=.001;}else if(v==='right'){az=Math.PI/2;el=.001;}else if(v==='bottom'){az=Math.PI;el=-1.55;}document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('selected',b.dataset.camera===v));draw3(at(cursor,1));}
 document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>camera(b.dataset.camera));
 window.cnc2DZoom=1;window.cnc2DPanX=0;window.cnc2DPanY=0;window.cnc2DRedraw=()=>cnc2DLiveFrame(cursor,1);
 $('fit3').onclick=()=>{zoom=1;camera('iso');};$('fit2').onclick=()=>{window.cnc2DZoom=1;window.cnc2DPanX=0;window.cnc2DPanY=0;window.cnc2DRedraw();};
@@ -2100,7 +2110,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
   };
 
   camera = function(v){
-    if(v==='iso'){ az=-2.35619449; el=.67; zoom=1; }
+    if(v==='iso'){ az=-2.35619449; el=.67; zoom=1; cncReset3DPan(); }
     else if(v==='top'){ az=0; el=1.5608; }
     else if(v==='front'){ az=0; el=.001; }
     else if(v==='right'){ az=Math.PI/2; el=.001; }
@@ -2157,7 +2167,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
       if(hd){
         const small = hd.querySelector('.small');
         hd.childNodes[0].nodeValue = '3D workspace · toolpath + material removal ';
-        if(small) small.textContent = 'Top = 2D-style view · drag to orbit · wheel zoom';
+        if(small) small.textContent = 'Drag to rotate · choose Pan to move · wheel zoom';
       }
       const label = second.querySelector('.viewport-label');
       if(label) label.textContent = 'SINGLE WORKSPACE · TOP VIEW = 2D SIMULATION';
@@ -2207,7 +2217,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
   }
   function project3(x,y,z){
     const r=rotPoint(x,y,z), s=viewScale();
-    return [c3.width/2+r.x*s, c3.height/2-r.z*s, r.y];
+    return [c3.width/2+r.x*s+cnc3DNavigation.panX*c3.width, c3.height/2-r.z*s+cnc3DNavigation.panY*c3.height, r.y];
   }
   function poly(pts, fill, stroke, width){
     if(!pts || !pts.length) return;
@@ -2408,12 +2418,12 @@ $('cnc-sample-program').addEventListener('change',event=>{
     drawTool3D(s);
     drawAxis();
     g3.fillStyle='rgba(231,240,247,.95)'; g3.font='600 12px system-ui'; g3.fillText('SINGLE 3D WORKSPACE · TOP VIEW = 2D SIMULATION', 14, 22);
-    g3.fillStyle='rgba(188,206,220,.95)'; g3.font='12px system-ui'; g3.fillText('DRAG: ORBIT   ·   SCROLL: ZOOM   ·   TOP VIEW FOR 2D', Math.max(14,W-285), 22);
+    g3.fillStyle='rgba(188,206,220,.95)'; g3.font='12px system-ui'; g3.fillText('DRAG: ROTATE / PAN   ·   SCROLL: ZOOM', Math.max(14,W-285), 22);
     g3.fillStyle='rgba(198,214,226,.94)'; g3.fillText(`Stock bottom Z = −${stock.z} mm`, 14, H-18);
   };
 
   camera = function(v){
-    if(v==='iso'){ az=-2.35619449; el=.67; zoom=1; }
+    if(v==='iso'){ az=-2.35619449; el=.67; zoom=1; cncReset3DPan(); }
     else if(v==='top'){ az=0; el=1.5608; }
     else if(v==='front'){ az=0; el=.001; }
     else if(v==='right'){ az=Math.PI/2; el=.001; }
@@ -2494,7 +2504,7 @@ function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[
 function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
 function matrix(){let eye=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)].map(v=>v*3);let forward=normalize(eye.map(v=>-v));let right=normalize(cross(forward,[0,0,1]));if(Math.hypot(...right)<.01)right=[1,0,0];let up=cross(right,forward);let aspect=webCanvas.width/webCanvas.height;const radiusFit=Math.max(Math.hypot(stock.x,stock.y,stock.z)*0.72 + 0.4*Math.max(20,...Object.values(diam||{})),cncReferenceViewRadius());let span=Math.max(10,radiusFit*0.87)/Math.max(.4,zoom);let sx=1/(span*Math.max(1,aspect)),sy=1/(span*Math.max(1,1/aspect)),sz=1/(span*5);const center=cncReferenceViewCenter(),cx=center.x,cy=center.y,cz=center.z;
 // construct column-major matrix with eye basis and translated center
- return new Float32Array([right[0]*sx,up[0]*sy,forward[0]*sz,0,right[1]*sx,up[1]*sy,forward[1]*sz,0,right[2]*sx,up[2]*sy,forward[2]*sz,0,-dot(right,[cx,cy,cz])*sx,-dot(up,[cx,cy,cz])*sy,-dot(forward,[cx,cy,cz])*sz,1]);}
+ return new Float32Array([right[0]*sx,up[0]*sy,forward[0]*sz,0,right[1]*sx,up[1]*sy,forward[1]*sz,0,right[2]*sx,up[2]*sy,forward[2]*sz,0,-dot(right,[cx,cy,cz])*sx+2*cnc3DNavigation.panX,-dot(up,[cx,cy,cz])*sy-2*cnc3DNavigation.panY,-dot(forward,[cx,cy,cz])*sz,1]);}
 let vertices=[],featureEdges=[];
 function v(x,y,z,n,color){vertices.push(x,y,z,...n,...color);}
 function tri(a,b,c,color){let ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],normal=normalize(cross(ab,ac));v(...a,normal,color);v(...b,normal,color);v(...c,normal,color);}
@@ -5869,13 +5879,16 @@ window.CNCStudioView={
  canvas:webCanvas,
  redraw:cncNavigationDraw,
  orbit:(dx,dy)=>{az-=dx*.009;el=Math.max(-1.48,Math.min(1.48,el+dy*.007));cncNavigationDraw();},
+ pan:(dx,dy)=>{cncPan3D(webCanvas,dx,dy);cncNavigationDraw();},
  scale:(ratio)=>{if(Number.isFinite(ratio)&&ratio>0){zoom=Math.max(.22,Math.min(9,zoom*ratio));cncNavigationDraw();}},
- transform:(dx,dy,ratio)=>{
+ transform:(dx,dy,ratio,panDX=0,panDY=0)=>{
   if(dx||dy){az-=dx*.009;el=Math.max(-1.48,Math.min(1.48,el+dy*.007));}
   if(Number.isFinite(ratio)&&ratio>0)zoom=Math.max(.22,Math.min(9,zoom*ratio));
+  if(panDX||panDY)cncPan3D(webCanvas,panDX,panDY);
   cncNavigationDraw();
  },
- resetZoom:()=>{zoom=1;cncNavigationDraw();}
+ resetZoom:()=>{zoom=1;cncReset3DPan();cncNavigationDraw();},
+ resetView:()=>camera('iso')
 };
 // SAFETY INTERLOCK: installed AFTER all WebGL and worker playback wrappers.
 // Prevent even the worker stock update from advancing past a flagged block.
@@ -5959,15 +5972,18 @@ asyncStartWorker();
    el=Math.max(-1.48,Math.min(1.48,el+dy*.006));
    redraw();
   },
+  pan:(dx,dy)=>{cncPan3D(cv,dx,dy);redraw();},
   scale:(ratio)=>{
    if(Number.isFinite(ratio)&&ratio>0){zoom=Math.max(.35,Math.min(6,zoom*ratio));redraw();}
   },
-  transform:(dx,dy,ratio)=>{
+  transform:(dx,dy,ratio,panDX=0,panDY=0)=>{
    if(dx||dy){az+=dx*.009;el=Math.max(-1.48,Math.min(1.48,el+dy*.006));}
    if(Number.isFinite(ratio)&&ratio>0)zoom=Math.max(.35,Math.min(6,zoom*ratio));
+   if(panDX||panDY)cncPan3D(cv,panDX,panDY);
    redraw();
   },
-  resetZoom:()=>{zoom=1;redraw();}
+  resetZoom:()=>{zoom=1;cncReset3DPan();redraw();},
+  resetView:()=>camera('iso')
  };
 })();
 </script>
@@ -6015,15 +6031,16 @@ asyncStartWorker();
  const points=new Map(),startPoints=new Map(); let previous=null,lastTap=0,gestureMoved=false,gestureMulti=false,downAt=0;
  // Touch events can arrive faster than display refresh. Accumulate camera
  // changes and draw at most once per animation frame, even during playback.
- let pending=false,orbitX=0,orbitY=0,zoomLog=0,gestureFrame=0;
+ let pending=false,orbitX=0,orbitY=0,panX=0,panY=0,zoomLog=0,gestureFrame=0,gesturePan=false;
  function flushCamera(){
   pending=false;
-  const dx=orbitX,dy=orbitY,scale=Math.exp(Math.max(-.35,Math.min(.35,zoomLog)));
-  orbitX=orbitY=zoomLog=0;
-  if((dx||dy||Math.abs(scale-1)>1e-8)&&view.transform){
-   view.transform(dx,dy,scale);
+  const dx=orbitX,dy=orbitY,px=panX,py=panY,scale=Math.exp(Math.max(-.35,Math.min(.35,zoomLog)));
+  orbitX=orbitY=panX=panY=zoomLog=0;
+  if((dx||dy||px||py||Math.abs(scale-1)>1e-8)&&view.transform){
+   view.transform(dx,dy,scale,px,py);
   }else{
    if(dx||dy)view.orbit(dx,dy);
+   if(px||py)view.pan(px,py);
    if(Math.abs(scale-1)>1e-8)view.scale(scale);
   }
  }
@@ -6040,14 +6057,17 @@ asyncStartWorker();
  }
  function record(ev){points.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});}
  cv.addEventListener('pointerdown',e=>{
-  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.pointerType==='mouse'&&e.button!==0&&e.button!==1)return;
   e.preventDefault();e.stopImmediatePropagation();
   if(points.has(e.pointerId))return;
-  if(points.size===0){gestureMoved=false;gestureMulti=false;downAt=performance.now();}
+  if(points.size===0){
+   gestureMoved=false;gestureMulti=false;downAt=performance.now();
+   gesturePan=cnc3DNavigation.mode==='pan'||e.shiftKey||(e.pointerType==='mouse'&&e.button===1);
+   cv.style.cursor='grabbing';
+  }
   // Ignore extra fingers rather than changing an established two-contact gesture.
   if(points.size>=2){gestureMulti=true;return;}
-  // Commit the one-finger orbit before switching to a two-finger pinch.
-  // Otherwise a queued orbit can be combined with a later pinch transform.
+  // Commit the current drag before switching to a two-finger pan/pinch.
   if(points.size===1&&pending){cancelAnimationFrame(gestureFrame);flushCamera();}
   startPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});record(e);
   if(points.size>1)gestureMulti=true;previous=centroid();
@@ -6059,15 +6079,14 @@ asyncStartWorker();
   const next=centroid();
   if(previous&&next&&previous.n===next.n){
    if(next.n===1){
-    orbitX+=Math.max(-50,Math.min(50,next.x-previous.x));
-    orbitY+=Math.max(-50,Math.min(50,next.y-previous.y));
+    const dx=Math.max(-50,Math.min(50,next.x-previous.x)),dy=Math.max(-50,Math.min(50,next.y-previous.y));
+    if(gesturePan){panX+=dx;panY+=dy;}else{orbitX+=dx;orbitY+=dy;}
     queueCamera();
-   }else if(next.n>=2&&next.d>0&&previous.d>0){
-    // Preserve two-finger centroid motion as orbit while pinching. Previously
-    // centroid motion was discarded, making rotation appear unresponsive.
-    orbitX+=Math.max(-50,Math.min(50,next.x-previous.x));
-    orbitY+=Math.max(-50,Math.min(50,next.y-previous.y));
-    zoomLog+=Math.log(next.d/previous.d);
+   }else if(next.n>=2){
+    // Two fingers move the scene; changing their distance also zooms it.
+    panX+=Math.max(-50,Math.min(50,next.x-previous.x));
+    panY+=Math.max(-50,Math.min(50,next.y-previous.y));
+    if(next.d>0&&previous.d>0)zoomLog+=Math.log(next.d/previous.d);
     queueCamera();
    }
   }
@@ -6086,11 +6105,12 @@ asyncStartWorker();
    try{if(cv.hasPointerCapture(e.pointerId))cv.releasePointerCapture(e.pointerId);}catch(_){}
   }
   if(points.size===0){
+   cv.style.cursor='grab';
    // Commit the final accumulated camera transform before a tap/reset or
    // a subsequent gesture. A suspended RAF must not discard the last move.
    const now=performance.now();
    const tap=e.type==='pointerup'&&e.pointerType!=='mouse'&&!gestureMulti&&!gestureMoved&&now-downAt<350;
-   if(tap){if(now-lastTap<280)view.resetZoom();lastTap=now;}else lastTap=0;
+   if(tap){if(lastTap&&now-lastTap<280)view.resetZoom();lastTap=now;}else lastTap=0;
   }
  }
  cv.addEventListener('pointerup',end,{capture:true,passive:false});
@@ -6104,7 +6124,8 @@ asyncStartWorker();
    try{if(cv.hasPointerCapture(id))cv.releasePointerCapture(id);}catch(_){}
   }
   pending=false;points.clear();startPoints.clear();previous=null;
-  gestureMoved=false;gestureMulti=false;orbitX=orbitY=zoomLog=0;
+  gestureMoved=false;gestureMulti=false;gesturePan=false;orbitX=orbitY=panX=panY=zoomLog=0;
+  cv.style.cursor='grab';
  }
  window.addEventListener('blur',clearGesture);
  // Pointer capture may be lost when a mobile browser changes orientation,
@@ -6113,7 +6134,22 @@ asyncStartWorker();
  window.addEventListener('pagehide',clearGesture);
  window.addEventListener('orientationchange',()=>{if(pending){cancelAnimationFrame(gestureFrame);flushCamera();}clearGesture();requestAnimationFrame(()=>view.redraw?.());});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(pending){cancelAnimationFrame(gestureFrame);flushCamera();}clearGesture();}else requestAnimationFrame(()=>view.redraw?.());});
- // Gesture/pinch and wheel zoom remain enabled; no extra zoom buttons.
+ const rotateButton=document.getElementById('cnc-3d-rotate');
+ const panButton=document.getElementById('cnc-3d-pan');
+ const resetButton=document.getElementById('cnc-3d-reset');
+ function setNavigationMode(mode){
+  clearGesture();cnc3DNavigation.mode=mode;
+  for(const [button,value]of [[rotateButton,'rotate'],[panButton,'pan']]){
+   if(!button)continue;
+   button.classList.toggle('selected',mode===value);
+   button.setAttribute('aria-pressed',String(mode===value));
+  }
+ }
+ rotateButton?.addEventListener('click',()=>setNavigationMode('rotate'));
+ panButton?.addEventListener('click',()=>setNavigationMode('pan'));
+ resetButton?.addEventListener('click',()=>{clearGesture();view.resetView();});
+ setNavigationMode(cnc3DNavigation.mode);
+ // Pinch and wheel zoom remain enabled in either navigation mode.
  // Draw immediately: gestures are now active before Play, during motion and after Stop.
  requestAnimationFrame(()=>view.redraw());
 })();
@@ -7414,7 +7450,7 @@ async function save(forceAs=false){if(busy)return;if(window.cncAutoUpdate?.getSt
  await request('readwrite',s=>s.put(saved));
  current=id;dirty=editRevision!==revision;await refresh();message(dirty?'Unsaved changes':'Saved locally');
  }finally{busy=false;}}
-async function newProgram(){if(busy||hasUnsaved())return;apply({id:'',name:'New program',code:'',settings:{stockshape:'rect',threadsurface:'auto',sx:'60',sy:'60',sz:'15',ox:'30',oy:'30',oz:'0',hx:'0',hy:'0',hz:'100'},tools:[{number:1,type:'Flat end mill',diameter:10,fluteLength:20,angle:90,pitch:1,tipDiameter:0}]});message('New program');}
+async function newProgram(){if(busy||hasUnsaved())return;apply({id:'',name:'New program',code:'',settings:{stockshape:'rect',threadsurface:'auto',sx:'60',sy:'60',sz:'15',ox:'30',oy:'30',oz:'0',hx:String(CNC_REFERENCE_DEFAULT.x),hy:String(CNC_REFERENCE_DEFAULT.y),hz:String(CNC_REFERENCE_DEFAULT.z)},tools:[{number:1,type:'Flat end mill',diameter:10,fluteLength:20,angle:90,pitch:1,tipDiameter:0}]});message('New program');}
 async function rename(){if(busy)return;if(!current||current.startsWith('sample:'))return message('Save a copy of this sample to rename it');const p=list.find(x=>x.id===current);if(!p)return;const entered=prompt('Rename program:',p.name);if(!entered?.trim())return;p.name=entered.trim().slice(0,100);p.updatedAt=new Date().toISOString();await request('readwrite',s=>s.put(p));await refresh();message('Renamed');}
 async function duplicate(){await save(true);}
 async function remove(){if(busy||!current)return;if(current.startsWith('sample:'))return message('Built-in samples cannot be deleted');if(!confirm('Delete this saved program from this browser?'))return;await request('readwrite',s=>s.delete(current));current='';await refresh();await newProgram();message('Deleted saved program');}
