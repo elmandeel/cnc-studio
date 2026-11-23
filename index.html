@@ -466,7 +466,7 @@ html[data-cnc-theme="light"] .cnc-import-controls .cnc-file-trigger:hover .cnc-f
   width:18px!important;
   height:18px!important;
 }
-</style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">Import a file or open a sample program</div><div class="cnc-import-controls"><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M4 16v4h16v-4"/></svg></span><span>Choose File</span></span></label><label class="cnc-sample-label" for="cnc-sample-program"><select id="cnc-sample-program" aria-label="Sample Programs"><option value="" selected>Sample Programs…</option><option value="face">Face/Mill</option><option value="drill">Drill/Tap</option><option value="sub">Subprogram</option></select></label></div><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button></div><div id="cnc-auto-status" role="status" aria-live="polite" data-state="ready">Preview up to date</div><p id="loadstatus" class="small"></p></div></section><section class="panel cnc-advanced"><div class="hd">2 · Stock dimensions <span class="small">millimeters</span></div><div class="body"><div class="inputs"><label>Stock shape<select id="stockshape"><option value="rect">Rectangular / square</option><option value="cylinder">Cylindrical (vertical axis)</option></select></label><label>Thread surface<select id="threadsurface"><option value="auto" selected>Auto-detect</option><option value="internal">Internal thread</option><option value="external">External thread</option></select></label><label id="stockxlabel">X length / diameter<input id="sx" type="number" min="1" max="500" step="1" value="60"></label><label>Y width<input id="sy" type="number" min="1" max="500" step="1" value="60"></label><label>Z thickness<input id="sz" type="number" min="0.1" max="200" step="0.5" value="8"></label></div></div></section><section class="panel cnc-advanced"><div class="hd">3 · G54 location <span class="small">relative to stock</span></div><div class="body"><div class="inputs"><label>X from left<input id="ox" type="number" step="0.5" value="0"></label><label>Y from front<input id="oy" type="number" step="0.5" value="0"></label><label>Z from stock top<input id="oz" type="number" step="0.5" value="0"></label></div></div></section><section class="panel cnc-advanced"><div class="hd">4 · Tool library <span class="small" id="toolcount">0 tools</span></div><div class="body"><div class="buttons" style="margin-bottom:9px"><button class="btn primary" type="button" id="addtool">+ Add tool</button><button class="btn" type="button" id="addthreadmill">+ Thread mill</button><button class="btn" type="button" id="toolimport">Import JSON</button><button class="btn" type="button" id="toolexport">Export JSON</button><input id="tooljson" type="file" accept=".json" hidden></div><div id="toollist" style="display:grid;gap:8px;max-height:390px;overflow:auto"></div><div class="buttons" style="margin-top:10px"><button class="btn primary" id="apply">Apply setup &amp; reset</button></div><div id="toolstatus" class="small" role="status" hidden></div></div></section><section class="panel cnc-code-panel"><div class="hd">Loaded program (exact source) <span id="count" class="small">0 lines</span></div><div id="lines" class="code"></div><details style="padding:8px 12px"><summary style="cursor:pointer">Expanded execution trace (simulation only)</summary><div id="cnc-expanded-lines" class="code" style="max-height:340px;overflow:auto"></div></details></section></aside><div class="right"><div class="workspacebar"><strong>MANUFACTURE <span style="color:#98aec0;font-weight:400">/ Toolpath Simulation</span></strong><div class="buttons"><button class="btn active" data-layout="3d">▣ 3D view</button><button class="btn" data-layout="2d">▤ 2D view</button><button class="btn" id="cnc-split-view" type="button">▦ Split view</button></div><span id="ws-status">G54 · mm · Stock preview</span></div><div class="views" id="workspaces"><section class="panel view"><div class="hd">2D · Toolpaths + machined contours <span class="small" id="op">Ready</span></div><div class="viewtoolbar"><button id="fit2">⌗ Fit</button><button id="grid2" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">TOP / XY</span></div><div class="viewport"><div class="viewport-label">TOP VIEW · XY PLANE</div><canvas id="flat" width="660" height="570"></canvas><div class="axis-symbol"><i class="xx">X →</i><i class="yy">Y ↑</i></div></div><div class="viewfoot"><span>2D: live toolpath + vector contours</span><span>Colored: feed moves by tool</span><span>Dashed: rapid moves</span><span>3D: material removal</span></div></section><section class="panel view"><div class="hd">3D · Tool & material removal <span class="small">Drag to rotate · wheel zoom</span></div><div class="viewtoolbar"><button data-camera="iso" class="selected">◈ Isometric</button><button data-camera="top">Top</button><button data-camera="front">Front</button><button data-camera="right">Right</button><button id="fit3">⌗ Fit</button><button id="grid3" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">ORBIT · ZOOM</span></div><div class="viewport"><div class="viewport-label">MODEL · MATERIAL REMOVAL</div><canvas id="three" width="660" height="570"></canvas><div class="cube"><button class="blank"></button><button data-camera="top" class="top">Z</button><button class="blank"></button><button data-camera="front">F</button><button data-camera="iso">⌂</button><button data-camera="right">R</button><button class="blank"></button><button data-camera="bottom">−Z</button><button class="blank"></button></div><div class="axis-symbol"><i class="xx">X</i><i class="yy">Y</i><i class="zz">Z</i></div></div><div class="viewfoot" id="cncOperationLegend" style="display:flex;flex-wrap:wrap;gap:8px">Tool color legend (experimental; stock cut colors not yet implemented).</div></section></div><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><section class="panel"><div class="hd">Live CNC state <span class="tag" id="mode">READY</span></div><div class="stats"><div><small>X</small><b id="x">—</b></div><div><small>Y</small><b id="y">—</b></div><div><small>Z</small><b id="z">—</b></div><div><small>Tool</small><b id="tool">—</b></div><div><small>Spindle</small><b id="rpm">OFF</b></div><div><small>Feed</small><b id="feed">—</b></div></div><div class="status"><b id="cmd">Ready</b><p id="description">Load your CNC program, then play or select individual lines.</p><div class="warning" id="messages"></div></div><div class="note"><b>Educational simulation:</b> G00 is noncutting travel; G01 linear interpolation and G02/G03 XY-plane arcs remove material using flat tool diameter and tool-tip depth. Supports G20/G21, G90/G91, modal axes, and T/M/S/F words. M98/M99 subprogram execution (including packed repetition P values), G02/G03 arcs, and linear/arc G41/G42 approximations are available. M6 moves to the simulator’s fixed Z30 mm clearance before changing tools; G43 tool-length tables, true chamfer-tool solid geometry, controller-specific canned-cycle behavior, machine collisions, stock fixtures, and controller-specific logic are <b>not</b> verified. Tool paths are interpreted, not safe to run on a real CNC without verification.</div></section></div></main>
+</style></head><body class="cnc-program-3d"><header class="cnc-app-header"><div class="cnc-brand"><img class="cnc-brand-logo" src="./icons/apple-touch-icon-cnc-20261119-r3.png" alt="CNC Studio logo" width="52" height="52"><div class="cnc-brand-copy"><h1>CNC Studio <span class="cnc-brand-subtitle">/ CNC Simulation Workspace</span></h1><p>Edit or import a program · stock, G54 and tool changes update automatically · step-by-step material removal</p></div></div><div class="cnc-header-actions"><span class="cnc-version-note">v152 · LIGHT / DARK · LOGO · PLAYBACK UNDER SIMULATOR · FANUC 31i</span><button id="cnc-theme-toggle" class="cnc-theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="cnc-theme-icon" aria-hidden="true">☀</span><span class="cnc-theme-text">Light</span></button></div></header><main><aside class="sidebar"><section class="panel"><div class="hd">1 · Import program <span class="small">.nc .tap .txt .gcode .docx .pdf</span></div><div class="body"><div class="cnc-file-picker"><div class="cnc-file-caption">Import a file or open a sample program</div><div class="cnc-import-controls"><label class="cnc-file-trigger" for="file"><input id="file" type="file" accept=".nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf" aria-describedby="cnc-file-name"><span class="cnc-file-action" aria-hidden="true"><span class="cnc-file-upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M4 16v4h16v-4"/></svg></span><span>Choose File</span></span></label><label class="cnc-sample-label" for="cnc-sample-program"><select id="cnc-sample-program" aria-label="Sample Programs"><option value="" selected>Sample Programs…</option><option value="face">Face/Mill</option><option value="drill">Drill/Tap</option><option value="sub">Subprogram</option></select></label></div><span class="cnc-file-name" id="cnc-file-name" aria-live="polite">No file selected</span></div><p class="small">Import tool setup sheets or G-code from Word and PDF. PDF.js loads online when available; offline text fallback is limited. Scanned PDFs require OCR. Legacy .doc files must be saved as .docx.</p><label>Program text (editable)<textarea id="source" spellcheck="false" wrap="off"></textarea></label><div id="cnc-font-controls" style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px" aria-label="G-code font size"><span class="small">G-code font</span><button class="btn" type="button" id="cnc-font-minus" aria-label="Decrease G-code font size">A−</button><output id="cnc-font-value" for="cnc-font-minus cnc-font-plus" style="min-width:42px;text-align:center;font:12px Consolas,monospace">12 px</output><button class="btn" type="button" id="cnc-font-plus" aria-label="Increase G-code font size">A+</button><button class="btn" type="button" id="cnc-font-reset">Reset</button></div><label class="small" style="display:flex;align-items:center;gap:7px;margin-top:6px"><input id="cnc-auto-sequence" type="checkbox" checked style="width:auto"> Auto sequence numbers (N5, N10, N15…) when typing</label><div class="buttons" style="margin-top:8px"><button class="btn primary" id="load">Load / simulate</button></div><div id="cnc-auto-status" role="status" aria-live="polite" data-state="ready">Preview up to date</div><p id="loadstatus" class="small"></p></div></section><section class="panel cnc-advanced"><div class="hd">2 · Stock dimensions <span class="small">millimeters</span></div><div class="body"><div class="inputs"><label>Stock shape<select id="stockshape"><option value="rect">Rectangular / square</option><option value="cylinder">Cylindrical (vertical axis)</option></select></label><label>Thread surface<select id="threadsurface"><option value="auto" selected>Auto-detect</option><option value="internal">Internal thread</option><option value="external">External thread</option></select></label><label id="stockxlabel">X length / diameter<input id="sx" type="number" min="1" max="500" step="1" value="60"></label><label>Y width<input id="sy" type="number" min="1" max="500" step="1" value="60"></label><label>Z thickness<input id="sz" type="number" min="0.1" max="200" step="0.5" value="8"></label></div></div></section><section class="panel cnc-advanced"><div class="hd">3 · G54 location <span class="small">relative to stock</span></div><div class="body"><div class="inputs"><label>X from left<input id="ox" type="number" step="0.5" value="0"></label><label>Y from front<input id="oy" type="number" step="0.5" value="0"></label><label>Z from stock top<input id="oz" type="number" step="0.5" value="0"></label></div></div></section><section class="panel cnc-advanced" id="cnc-reference-setup"><div class="hd">Machine reference (G28) <span class="small">virtual machine · mm</span></div><div class="body"><div class="inputs"><label>Reference X<input id="hx" aria-label="Machine reference X" type="number" step="1" value="0"></label><label>Reference Y<input id="hy" aria-label="Machine reference Y" type="number" step="1" value="0"></label><label>Reference Z<input id="hz" aria-label="Machine reference Z" type="number" step="1" value="100"></label></div><p class="small">X/Y are measured from the stock left/front; Z from the stock top. G28 returns only the axes named in the block.</p></div></section><section class="panel cnc-advanced"><div class="hd">4 · Tool library <span class="small" id="toolcount">0 tools</span></div><div class="body"><div class="buttons" style="margin-bottom:9px"><button class="btn primary" type="button" id="addtool">+ Add tool</button><button class="btn" type="button" id="addthreadmill">+ Thread mill</button><button class="btn" type="button" id="toolimport">Import JSON</button><button class="btn" type="button" id="toolexport">Export JSON</button><input id="tooljson" type="file" accept=".json" hidden></div><div id="toollist" style="display:grid;gap:8px;max-height:390px;overflow:auto"></div><div class="buttons" style="margin-top:10px"><button class="btn primary" id="apply">Apply setup &amp; reset</button></div><div id="toolstatus" class="small" role="status" hidden></div></div></section><section class="panel cnc-code-panel"><div class="hd">Loaded program (exact source) <span id="count" class="small">0 lines</span></div><div id="lines" class="code"></div><details style="padding:8px 12px"><summary style="cursor:pointer">Expanded execution trace (simulation only)</summary><div id="cnc-expanded-lines" class="code" style="max-height:340px;overflow:auto"></div></details></section></aside><div class="right"><div class="workspacebar"><strong>MANUFACTURE <span style="color:#98aec0;font-weight:400">/ Toolpath Simulation</span></strong><div class="buttons"><button class="btn active" data-layout="3d">▣ 3D view</button><button class="btn" data-layout="2d">▤ 2D view</button><button class="btn" id="cnc-split-view" type="button">▦ Split view</button></div><span id="ws-status">G54 · mm · Stock preview</span></div><div class="views" id="workspaces"><section class="panel view"><div class="hd">2D · Toolpaths + machined contours <span class="small" id="op">Ready</span></div><div class="viewtoolbar"><button id="fit2">⌗ Fit</button><button id="grid2" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">TOP / XY</span></div><div class="viewport"><div class="viewport-label">TOP VIEW · XY PLANE</div><canvas id="flat" width="660" height="570"></canvas><div class="axis-symbol"><i class="xx">X →</i><i class="yy">Y ↑</i></div></div><div class="viewfoot"><span>2D: live toolpath + vector contours</span><span>Colored: feed moves by tool</span><span>Dashed: rapid moves</span><span>3D: material removal</span></div></section><section class="panel view"><div class="hd">3D · Tool & material removal <span class="small">Drag to rotate · wheel zoom</span></div><div class="viewtoolbar"><button data-camera="iso" class="selected">◈ Isometric</button><button data-camera="top">Top</button><button data-camera="front">Front</button><button data-camera="right">Right</button><button id="fit3">⌗ Fit</button><button id="grid3" class="selected">▦ Grid</button><span class="spacer"></span><span class="toolhint">ORBIT · ZOOM</span></div><div class="viewport"><div class="viewport-label">MODEL · MATERIAL REMOVAL</div><canvas id="three" width="660" height="570"></canvas><div class="cube"><button class="blank"></button><button data-camera="top" class="top">Z</button><button class="blank"></button><button data-camera="front">F</button><button data-camera="iso">⌂</button><button data-camera="right">R</button><button class="blank"></button><button data-camera="bottom">−Z</button><button class="blank"></button></div><div class="axis-symbol"><i class="xx">X</i><i class="yy">Y</i><i class="zz">Z</i></div></div><div class="viewfoot" id="cncOperationLegend" style="display:flex;flex-wrap:wrap;gap:8px">Tool color legend (experimental; stock cut colors not yet implemented).</div></section></div><section class="panel" id="cnc-program-playback"><div class="hd">Playback controls <span class="small" id="progress">0 / 0</span></div><div class="controls"><button class="btn" id="reset">↺ Reset</button><button class="btn" id="prev">◀ Step</button><button class="btn primary" id="play">▶ Play</button><button class="btn" id="next">Step ▶</button><label>Speed <input type="range" id="speed" min="1" max="10" value="4"><span id="speedvalue">4×</span></label><label>Quality <select id="resolution"><option value="160">Fast</option><option value="220" selected>Normal</option><option value="320">Detailed</option></select></label></div><div class="timeline"><span id="linenumber">Start</span><input type="range" id="seek" min="0" max="0" value="0"></div></section><section class="panel"><div class="hd">Live CNC state <span class="tag" id="mode">READY</span></div><div class="stats"><div><small>X</small><b id="x">—</b></div><div><small>Y</small><b id="y">—</b></div><div><small>Z</small><b id="z">—</b></div><div><small>Tool</small><b id="tool">—</b></div><div><small>Spindle</small><b id="rpm">OFF</b></div><div><small>Feed</small><b id="feed">—</b></div></div><div class="status"><b id="cmd">Ready</b><p id="description">Load your CNC program, then play or select individual lines.</p><div class="warning" id="messages"></div></div><div class="note"><b>Educational simulation:</b> G00 is noncutting travel; G01 linear interpolation and G02/G03 XY-plane arcs remove material using flat tool diameter and tool-tip depth. Supports G20/G21, G90/G91, modal axes, and T/M/S/F words. M98/M99 subprogram execution (including packed repetition P values), G02/G03 arcs, and linear/arc G41/G42 approximations are available. M6 moves to the simulator’s fixed Z30 mm clearance before changing tools; G28 returns selected axes via an intermediate point to the reference set in Advanced settings; G43 tool-length tables, true chamfer-tool solid geometry, controller-specific canned-cycle behavior, machine collisions, stock fixtures, and controller-specific logic are <b>not</b> verified. Tool paths are interpreted, not safe to run on a real CNC without verification.</div></section></div></main>
 <script>/*!
 
 JSZip v3.10.1 - A JavaScript class for generating and reading zip files
@@ -921,7 +921,7 @@ function cncReadSetup(){
  const x=number('sx','Stock X / diameter',1,500);
  const y=shape==='cylinder'?x:number('sy','Stock Y',1,500);
  const z=number('sz','Stock thickness',.1,200);
- return {stock:{x,y,z,shape},origin:{x:number('ox','G54 X'),y:number('oy','G54 Y'),z:number('oz','G54 Z')},threadsurface:$('threadsurface').value};
+ return {stock:{x,y,z,shape},origin:{x:number('ox','G54 X'),y:number('oy','G54 Y'),z:number('oz','G54 Z')},referencePosition:{x:number('hx','Reference X',-100000,100000),y:number('hy','Reference Y',-100000,100000),z:number('hz','Reference Z',-100000,100000)},threadsurface:$('threadsurface').value};
 }
 function cncValidateSource(text){
  const allowed=new Set(['G','M','N','T','S','F','X','Y','Z','I','J','K','R','P','L','D','H','Q','A','B','C','O']);
@@ -944,7 +944,7 @@ function cncPrepareProgram(){
  const config=cncReadSetup(),text=$('source').value;
  cncValidateSource(text);
  window.cncTools.mergeFromDocument('',text);
- const parsed=parse(config.origin);
+ const parsed=parse(config.origin,config.referencePosition);
  window.cncTools.ensure(parsed.out);
  window.cncTools.validateProgram(parsed.out);
  config.parsed=parsed;
@@ -1253,7 +1253,7 @@ async function cncImportProgramFile(f){
   window.cncTools.clearForImport();
   const toolMsg=window.cncTools.mergeFromDocument(raw,program);
   $('source').value=program;window.cncFinalizeSemicolons?.(true);
-  const values=cncInferNewSetup(program,raw);
+  const values={...cncInferNewSetup(program,raw),hx:CNC_REFERENCE_DEFAULT.x,hy:CNC_REFERENCE_DEFAULT.y,hz:CNC_REFERENCE_DEFAULT.z};
   for(const [id,value] of Object.entries(values))$(id).value=value;
   $('stockshape').value='rect';
   window.cncLive2DMesh=null;
@@ -1309,67 +1309,99 @@ function cncExpandPrograms(blocks){
  return {output,problems,subprograms:[...programs.keys()]};
 }
 
-// Fixed simulator tool-change clearance in millimetres, in the displayed G54 Z frame.
-// This automatic machine action does not change G90/G91, units or G52 offsets.
+// Virtual machine reference in the same stock/world frame used by G53, always mm.
+// It is a machine setup value, independent of G54/G52 and the M6 clearance.
+const CNC_REFERENCE_DEFAULT=Object.freeze({x:0,y:0,z:100});
 const CNC_TOOL_CHANGE_Z=30;
-// v73 educational canned-cycle expander: original source remains editable and visible.
-// G84 F is treated as pitch (mm/rev) for this MET 238 program, not standard G94 feed.
-function cncExpandDrillingCycles(source){
- const output=[];let cycle=null,x=0,y=0,z=50,initial=10,rpm=0,feed=100,abs=true,units=1;
- const locations=cncSourceLocations(source);
- const word=(line,k)=>{const m=new RegExp('(?:^|\\s)'+k+'\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))','i').exec(line);return m?Number(m[1]):null;};
- const fmt=v=>Number(v.toFixed(5));
- let sourceLine=0;
- // Every movement generated for a cycle belongs to the editor block that issued it.
-  const emit=line=>output.push({line,sourceLine,location:locations[sourceLine-1]});
- for(const raw of source.split(/\r?\n/)){
-  sourceLine++;
-  const line=raw.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
+function cncReferenceReturnError(g,p){
+ if(!g.includes(28))return '';
+ if(['A','B','C'].some(k=>k in p))return 'CNC Studio supports G28 reference return for X, Y and Z only; rotary axes are not simulated.';
+ if(!['X','Y','Z'].some(k=>k in p))return 'CNC Studio requires an X, Y or Z axis for G28; for example, G91 G28 Z0.';
+ if(g.includes(52)||g.includes(53))return 'G28 cannot share a block with G52 or G53; program the coordinate command separately.';
+ if(g.some(v=>[73,74,76,81,82,83,84,85,86,87,88,89].includes(v)))return 'CNC Studio requires G28 and a drilling cycle in separate blocks; cancel the cycle with G80 before reference return.';
+ return '';
+}
+// Expand canned cycles in actual execution order, including called subprograms.
+// The tracker uses local programmed coordinates; generated G90 moves retain G52.
+// G84 F remains the existing MET 238 pitch convention (mm/rev).
+function cncExpandDrillingCycles(blocks,workOrigin={x:0,y:0,z:0},referencePosition=CNC_REFERENCE_DEFAULT){
+ if(typeof blocks==='string'){
+  const locations=cncSourceLocations(blocks);
+  blocks=blocks.split(/\r?\n/).map((line,i)=>({line,sourceLine:i+1,location:locations[i],origin:'Main'}));
+ }
+ const output=[];let cycle=null,x=0,y=0,z=50,rpm=0,feed=100,abs=true,units=1;
+ const shift={x:0,y:0,z:0};
+ const word=(line,k)=>{const m=new RegExp(k+'\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))','i').exec(line);return m?Number(m[1]):null;};
+ // The tracker is in mm; generated words remain in the active G20/G21 units.
+ const fmt=v=>Number((v/units).toFixed(units===1?5:12));
+ let item;
+ const emit=line=>{
+  if(output.length>=18000)throw cncSourceError(item.location,'Cycle expansion exceeds 18,000 blocks.');
+  output.push({...item,line});
+ };
+ for(item of blocks){
+  const raw=item.line,line=raw.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
   if(!line){emit(raw);continue;}
-  // A DOCX may append O subprograms after M30. Never let the previous
-  // main-program G83/G84 modal cycle consume the subprogram's XY blocks.
-  // Tool changes and explicit G00/G01/G02/G03 also terminate our educational
-  // canned-cycle expansion; preserve the original block for normal parsing.
-  if(/^O\s*\d+\s*$/i.test(line)||/\bM\s*(?:0?2|30|0?99)\b/i.test(line)){
-   cycle=null;emit(raw);continue;
+  const words=[...line.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)];
+  const g=words.filter(w=>w[1].toUpperCase()==='G').map(w=>Number(w[2]));
+  const m=words.filter(w=>w[1].toUpperCase()==='M').map(w=>Number(w[2]));
+  if(/^O\s*\d+\s*$/i.test(line)||m.some(v=>[2,30,99].includes(v))){cycle=null;emit(raw);continue;}
+  const toolChange=m.includes(6),referenceReturn=g.includes(28);
+  if(toolChange){cycle=null;z=CNC_TOOL_CHANGE_Z-shift.z;}
+  if(g.some(v=>[0,1,2,3,28].includes(v)))cycle=null;
+  if(g.includes(21))units=1;if(g.includes(20))units=25.4;
+  if(g.includes(90))abs=true;if(g.includes(91))abs=false;
+  // G80 may accompany G28 (or M6); retain the reference-return block intact.
+  if(g.includes(80)){cycle=null;if(!toolChange&&!referenceReturn){emit('(G80 canned cycle cancelled)');continue;}}
+  if(g.includes(52)){
+   for(const axis of ['x','y','z']){
+    const value=word(line,axis.toUpperCase());if(value===null)continue;
+    const next=value*units,delta=shift[axis]-next;
+    if(axis==='x')x+=delta;else if(axis==='y')y+=delta;else z+=delta;
+    shift[axis]=next;
+   }
+   emit(raw);continue;
   }
-  const toolChange=/M\s*0*6(?![\d.])/i.test(line);
-  if(toolChange){cycle=null;z=CNC_TOOL_CHANGE_Z;}
-  if(/\bG\s*0?[0123](?!\d)\b/i.test(line))cycle=null;
-  if(/\bG21\b/i.test(line))units=1;
-  if(/\bG20\b/i.test(line))units=25.4;
-  if(/\bG90\b/i.test(line))abs=true;
-  if(/\bG91\b/i.test(line))abs=false;
-  if(/\bG80\b/i.test(line)){cycle=null;if(!toolChange){emit('(G80 canned cycle cancelled)');continue;}}
-  // G52 axes set a local datum; they are not movement or drilling-cycle positions.
-  if(/\bG0?52\b/i.test(line)){emit(raw);continue;}
-  const s=word(line,'S');if(s!==null)rpm=s;
-  const f=word(line,'F');if(f!==null && !cycle)feed=f*units;
-  const code=/\bG(83|84)\b/i.exec(line);
-  if(code){cycle={kind:Number(code[1]),depth:word(line,'Z'),r:word(line,'R'),q:word(line,'Q'),pitch:word(line,'F'),g98:/\bG98\b/i.test(line),initial:z};}
-  if(cycle && (code||!(/\bG(?:0?[0123]|80|81|82|85|90|91)\b/i.test(line)) && (word(line,'X')!==null||word(line,'Y')!==null))){
+  const speed=word(line,'S');if(speed!==null)rpm=speed;
+  const f=word(line,'F');if(f!==null&&!cycle)feed=f*units;
+  if(referenceReturn){
+   emit(raw);
+   // Only selected axes change. The endpoint bypasses work/local offsets.
+   if(word(line,'X')!==null)x=referencePosition.x-workOrigin.x-shift.x;
+   if(word(line,'Y')!==null)y=referencePosition.y-workOrigin.y-shift.y;
+   if(word(line,'Z')!==null)z=referencePosition.z-workOrigin.z-shift.z;
+   continue;
+  }
+  const code=g.find(v=>v===83||v===84);
+  if(code!==undefined)cycle={kind:code,depth:word(line,'Z'),r:word(line,'R'),q:word(line,'Q'),pitch:word(line,'F'),g98:g.includes(98),initial:z};
+  if(cycle&&(code!==undefined||!g.some(v=>[0,1,2,3,80,81,82,85,90,91].includes(v))&&(word(line,'X')!==null||word(line,'Y')!==null))){
    const nx=word(line,'X'),ny=word(line,'Y');
-   if(nx!==null)x=abs?nx*units:x+nx*units;
-   if(ny!==null)y=abs?ny*units:y+ny*units;
+   if(nx!==null)x=abs?nx*units:x+nx*units;if(ny!==null)y=abs?ny*units:y+ny*units;
    const target=cycle.depth*units,R=cycle.r*units,ret=cycle.g98?cycle.initial:R;
    if(!Number.isFinite(target)||!Number.isFinite(R)||target>=R){emit('(INVALID CANNED CYCLE '+raw+')');continue;}
    emit('(ORIGINAL '+line+')');emit('G90 G0 X'+fmt(x)+' Y'+fmt(y)+' Z'+fmt(cycle.initial));emit('G0 Z'+fmt(R));
    if(cycle.kind===83){const q=Math.max(.1,Math.abs((cycle.q||4)*units));let d=R;while(d>target+1e-7){d=Math.max(target,d-q);emit('G1 Z'+fmt(d)+' F'+fmt(feed));if(d>target)emit('G0 Z'+fmt(R));}}
-   else {const pitch=cycle.pitch===null?1:cycle.pitch*units;const tapFeed=Math.max(.01,rpm*pitch);emit('(G84 TAP ENTRY PITCH '+fmt(pitch)+' MM REV; RPM '+rpm+')');emit('G1 Z'+fmt(target)+' F'+fmt(tapFeed));emit('(G84 SPINDLE REVERSE M4 - SYNCHRONIZED RETRACT APPROXIMATION)');emit('M4');emit('G1 Z'+fmt(R)+' F'+fmt(tapFeed));emit('M3');}
+   else {const pitch=cycle.pitch===null?1:cycle.pitch*units;const tapFeed=Math.max(.01,rpm*pitch);emit('(G84 TAP ENTRY PITCH '+Number(pitch.toFixed(5))+' MM REV; RPM '+rpm+')');emit('G1 Z'+fmt(target)+' F'+fmt(tapFeed));emit('(G84 SPINDLE REVERSE M4 - SYNCHRONIZED RETRACT APPROXIMATION)');emit('M4');emit('G1 Z'+fmt(R)+' F'+fmt(tapFeed));emit('M3');}
    emit('G0 Z'+fmt(ret));z=ret;continue;
   }
   emit(raw);
-  // Explicit Z words still execute after the automatic M6 clearance move.
-  const zz=word(line,'Z');if(zz!==null)z=abs?zz*units:z+zz*units;
-  const xx=word(line,'X'),yy=word(line,'Y');if(xx!==null)x=abs?xx*units:x+xx*units;if(yy!==null)y=abs?yy*units:y+yy*units;
+  for(const axis of ['x','y','z']){
+   const value=word(line,axis.toUpperCase());if(value===null)continue;
+   const old=axis==='x'?x:axis==='y'?y:z;
+   const next=g.includes(53)?value*units-workOrigin[axis]-shift[axis]:abs?value*units:old+value*units;
+   if(axis==='x')x=next;else if(axis==='y')y=next;else z=next;
+  }
  }
  return output;
 }
-function parse(workOrigin=origin){
- const expanded=cncExpandPrograms(cncExpandDrillingCycles($('source').value));
+function parse(workOrigin=origin,referencePosition=CNC_REFERENCE_DEFAULT){
+ const source=$('source').value,locations=cncSourceLocations(source);
+ const blocks=source.split(/\r?\n/).map((line,i)=>({line,sourceLine:i+1,location:locations[i]}));
+ const expanded=cncExpandPrograms(blocks);
+ expanded.output=cncExpandDrillingCycles(expanded.output,workOrigin,referencePosition);
  let s={x:null,y:null,z:null,mode:0,abs:true,units:1,plane:17,tool:0,rpm:0,feed:0,spindle:false,comp:0,g52x:0,g52y:0,g52z:0},out=[],warn=[...expanded.problems];
  for(const item of expanded.output){
- const clean=item.line,location=item.location||cncSourceLocation(item.sourceLine,clean),label=cncBlockLabel(location),words=[...clean.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(m=>({k:m[1].toUpperCase(),v:+m[2]}));
+ const clean=item.line.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim(),location=item.location||cncSourceLocation(item.sourceLine,clean),label=cncBlockLabel(location),words=[...clean.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(m=>({k:m[1].toUpperCase(),v:+m[2]}));
  if(!words.length)continue;
  const before={...s},p={},g=[],m=[];let n='';
  for(const w of words){if(w.k==='N')n='N'+w.v;else if(w.k==='G')g.push(w.v);else if(w.k==='M')m.push(w.v);else p[w.k]=w.v;}
@@ -1379,10 +1411,12 @@ function parse(workOrigin=origin){
   else if(v===20)s.units=25.4;else if(v===21)s.units=1;
   else if([17,18,19].includes(v))s.plane=v;
   else if(v===41||v===42)s.comp=v;else if(v===40)s.comp=0;
-  else if([54,43,80,94,97].includes(v)){}
+  else if([28,54,43,80,94,97].includes(v)){}
   else if(v===52||v===53){}
    else warn.push(label+': G'+v+' not yet geometrically implemented');
  }
+ const referenceError=cncReferenceReturnError(g,p);
+ if(referenceError)throw cncSourceError(location,referenceError);
  if(m.includes(6)){
   // Retract the outgoing tool first; the incoming tool appears only at clearance.
   // Both execution phases retain the original M6 source line and sequence label.
@@ -1395,6 +1429,29 @@ function parse(workOrigin=origin){
  if('T'in p)s.tool=p.T;if('S'in p)s.rpm=p.S;if('F'in p)s.feed=p.F*s.units;
 
  for(const v of m){if(v===3||v===4)s.spindle=true;else if([5,30,2].includes(v))s.spindle=false;else if(![6,8,9,98,99].includes(v))warn.push(label+': M'+v+' not simulated');}
+ if(g.includes(28)){
+  const axes=['X','Y','Z'].filter(k=>k in p);
+  const entry={...s},intermediate={...s};
+  for(const k of axes){
+   const axis=k.toLowerCase(),value=p[k]*s.units;
+   // An unknown incremental start remains unknown until reference return.
+   intermediate[axis]=s.abs?value+s['g52'+axis]:s[axis]===null?null:s[axis]+value;
+  }
+  const record=(a,b,stage)=>({
+   n:(item.origin==='Main'?'':item.origin+' · ')+(n||String(out.length+1)),
+   code:clean,sourceLine:item.sourceLine,location,before:{...a},after:{...b},
+   hasMove:axes.some(k=>a[k.toLowerCase()]!==b[k.toLowerCase()]),mode:0,arc:false,params:p,
+   referenceReturn:stage,referenceAxes:axes.join(''),referencePosition:{...referencePosition},
+   ends:m.includes(30)||m.includes(2),call:!!item.call
+  });
+  if(axes.some(k=>entry[k.toLowerCase()]!==intermediate[k.toLowerCase()]))out.push(record(entry,intermediate,'intermediate'));
+  const home={...intermediate};
+  for(const k of axes){const axis=k.toLowerCase();home[axis]=referencePosition[axis]-workOrigin[axis];}
+  // G28 is nonmodal. Both legs are rapid; the next ordinary move retains G0/G1/G2/G3.
+  out.push(record(intermediate,home,'home'));s=home;
+  if(m.includes(30)||m.includes(2))s.comp=0;
+  continue;
+ }
  // G52 establishes a local work-coordinate shift relative to G54. It does not
  // move the cutter, even when XYZ appear in the block. Unspecified axes retain
  // their previous shift; G52 X0 Y0 Z0 cancels all three.
@@ -1424,7 +1481,7 @@ function parse(workOrigin=origin){
  return {out,warn:[...new Set(warn)]};
 }
 function radius(st){return Math.max(.05,(diam[st.tool]||10)/2);}
-function segments(e,f=1){if(!e.hasMove)return[];let a=e.before,b=e.after;if(a.x==null||a.y==null||b.x==null||b.y==null)return[];const aa={x:a.x+origin.x,y:a.y+origin.y,z:(a.z??0)+origin.z},bb={x:b.x+origin.x,y:b.y+origin.y,z:(b.z??0)+origin.z};let points=[];
+function segments(e,f=1){if(!e.hasMove)return[];let a=e.before,b=e.after;if(a.x==null||a.y==null||b.x==null||b.y==null||(e.referenceReturn&&(a.z==null||b.z==null)))return[];const aa={x:a.x+origin.x,y:a.y+origin.y,z:(a.z??0)+origin.z},bb={x:b.x+origin.x,y:b.y+origin.y,z:(b.z??0)+origin.z};let points=[];
 if(e.arc&&a.plane===17){let rad,center;if('I'in e.params||'J'in e.params){center={x:aa.x+(e.params.I||0)*b.units,y:aa.y+(e.params.J||0)*b.units};}else if('R'in e.params){let R=Math.abs(e.params.R*b.units),dx=bb.x-aa.x,dy=bb.y-aa.y,d=Math.hypot(dx,dy);if(d>2*R||d===0)return [[aa,bb]];let hh=Math.sqrt(Math.max(0,R*R-d*d/4)),mx=(aa.x+bb.x)/2,my=(aa.y+bb.y)/2,sign=(e.mode===2?-1:1)*(e.params.R<0?-1:1);center={x:mx-sign*dy/d*hh,y:my+sign*dx/d*hh};}if(center){rad=Math.hypot(aa.x-center.x,aa.y-center.y);let a0=Math.atan2(aa.y-center.y,aa.x-center.x),a1=Math.atan2(bb.y-center.y,bb.x-center.x),sweep=a1-a0;if(e.mode===2){while(sweep>=0)sweep-=Math.PI*2;}else{while(sweep<=0)sweep+=Math.PI*2;}let n=Math.min(1500,Math.max(12,Math.ceil(Math.abs(rad*sweep)/.6)));let last=aa;for(let i=1;i<=n;i++){let t=i/n,angle=a0+sweep*t,p={x:center.x+rad*Math.cos(angle),y:center.y+rad*Math.sin(angle),z:aa.z+(bb.z-aa.z)*t};points.push([last,p]);last=p;}return points;}}
 return [[aa,bb]];}
 function allocate(){nx=Math.min(260,Math.max(30,+$('resolution').value));ny=Math.max(30,Math.round(nx*stock.y/stock.x));if(ny>260){ny=260;nx=Math.max(30,Math.round(ny*stock.x/stock.y));}h=new Float32Array(nx*ny);cncHeightRevision++;cnc2DOwner=new Uint16Array(nx*ny);}
@@ -1574,6 +1631,37 @@ function cnc2DLiveFrame(n,f){
 // Show both the spindle's actual ON/OFF state and the last commanded speed.
 // M5/M2/M30 stop the spindle but do not erase modal S or F settings.
 // Feed is a programmed modal setting; it is NOT measured machine feed motion.
+let cncReferenceFitSteps=null,cncReferenceFitRadius=0,cncReferenceFitCenter=null;
+function cncReferenceViewRadius(){
+ if(cncReferenceFitSteps===steps)return cncReferenceFitRadius;
+ cncReferenceFitSteps=steps;cncReferenceFitRadius=0;cncReferenceFitCenter=null;
+ const lo={x:0,y:0,z:-stock.z},hi={x:stock.x,y:stock.y,z:0};
+ let found=false;
+ for(const e of steps){
+  if(!e.referenceReturn)continue;
+  const toolRadius=Math.max(.5,(diam[e.after.tool]||10)/2);
+  const toolHeight=Math.max(70,toolRadius*3);
+  for(const state of [e.before,e.after]){
+   if(state.z===null)continue;
+   const x=state.x===null?stock.x/2:state.x+origin.x,y=state.y===null?stock.y/2:state.y+origin.y,z=state.z+origin.z;
+   lo.x=Math.min(lo.x,x-toolRadius);hi.x=Math.max(hi.x,x+toolRadius);
+   lo.y=Math.min(lo.y,y-toolRadius);hi.y=Math.max(hi.y,y+toolRadius);
+   lo.z=Math.min(lo.z,z);hi.z=Math.max(hi.z,z+toolHeight);found=true;
+  }
+ }
+ if(found){
+  cncReferenceFitCenter={x:(lo.x+hi.x)/2,y:(lo.y+hi.y)/2,z:(lo.z+hi.z)/2};
+  cncReferenceFitRadius=Math.hypot(hi.x-lo.x,hi.y-lo.y,hi.z-lo.z)*.59;
+ }
+ return cncReferenceFitRadius;
+}
+function cncReferenceViewCenter(){cncReferenceViewRadius();return cncReferenceFitCenter||{x:stock.x/2,y:stock.y/2,z:-stock.z/2};}
+function cncReferenceDescription(e){
+ const axes=e.referenceAxes.split('').join('/');
+ if(e.referenceReturn==='intermediate')return 'G28: rapid move to the programmed intermediate point ('+axes+').';
+ const target=e.referenceAxes.split('').map(axis=>axis+e.referencePosition[axis.toLowerCase()]).join(' ');
+ return 'G28: rapid return of '+axes+' to machine reference '+target+' mm.';
+}
 function cncRenderSpindleFeed(s){
  const spindle=$('rpm'),feed=$('feed');
  const rpm=Number(s.rpm),f=Number(s.feed);
@@ -1584,7 +1672,7 @@ function cncRenderSpindleFeed(s){
  feed.textContent=hasFeed?'F'+f.toLocaleString('en-US',{maximumFractionDigits:2})+' mm/min':'Not programmed';
  feed.title=hasFeed?'Last programmed feed setting; not the actual feed during rapid moves or while stopped':'No active F feed setting found at this execution block';
 }
-function render(n=cursor,f=1){recalc(n,f);let s=at(n,f),e=n?steps[n-1]:null;cnc2DLiveFrame(n,f);draw3(s);for(const k of ['x','y','z'])$(k).textContent=s[k]==null?'—':s[k].toFixed(2);$('tool').textContent=s.tool?'T'+s.tool+' '+window.cncTools.name(s.tool)+' Ø'+(diam[s.tool]||10):'None';cncRenderSpindleFeed(s);$('mode').textContent=e?(e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP'):'READY';$('cmd').textContent=e?`${e.n}   ${e.code}`:'Ready';$('description').textContent=e?e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?`Movement in ${e.mode===0?'rapid positioning':'cutting feed'}; current tool T${s.tool||'?'}, XY origin offset (${origin.x}, ${origin.y}), G54 Z offset ${origin.z}.`:'Modal setting, spindle or tool command.':'Load and select a command to begin.';$('progress').textContent=`${n} / ${steps.length}`;$('seek').value=n;$('linenumber').textContent=e?'Line '+e.sourceLine:'Start';$('op').textContent=e?`T${s.tool||'?'} · ${e.mode===0?'rapid':'cut'}`:'Ready';$('ws-status').textContent=`G54 (${origin.x}, ${origin.y}, ${origin.z})${(s.g52x||s.g52y||s.g52z)?` · G52 (${s.g52x||0}, ${s.g52y||0}, ${s.g52z||0})`:''} · ${stock.x} × ${stock.y} × ${stock.z} mm`;$('messages').textContent=warnings.slice(0,6).join('\n')+(warnings.length>6?`\n… and ${warnings.length-6} more`:'');}
+function render(n=cursor,f=1){recalc(n,f);let s=at(n,f),e=n?steps[n-1]:null;cnc2DLiveFrame(n,f);draw3(s);for(const k of ['x','y','z'])$(k).textContent=s[k]==null?'—':s[k].toFixed(2);$('tool').textContent=s.tool?'T'+s.tool+' '+window.cncTools.name(s.tool)+' Ø'+(diam[s.tool]||10):'None';cncRenderSpindleFeed(s);$('mode').textContent=e?(e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP'):'READY';$('cmd').textContent=e?`${e.n}   ${e.code}`:'Ready';$('description').textContent=e?e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?`Movement in ${e.mode===0?'rapid positioning':'cutting feed'}; current tool T${s.tool||'?'}, XY origin offset (${origin.x}, ${origin.y}), G54 Z offset ${origin.z}.`:'Modal setting, spindle or tool command.':'Load and select a command to begin.';$('progress').textContent=`${n} / ${steps.length}`;$('seek').value=n;$('linenumber').textContent=e?'Line '+e.sourceLine:'Start';$('op').textContent=e?`T${s.tool||'?'} · ${e.mode===0?'rapid':'cut'}`:'Ready';$('ws-status').textContent=`G54 (${origin.x}, ${origin.y}, ${origin.z})${(s.g52x||s.g52y||s.g52z)?` · G52 (${s.g52x||0}, ${s.g52y||0}, ${s.g52z||0})`:''} · ${stock.x} × ${stock.y} × ${stock.z} mm`;$('messages').textContent=warnings.slice(0,6).join('\n')+(warnings.length>6?`\n… and ${warnings.length-6} more`:'');}
 function stop(){running=false;cancelAnimationFrame(raf);$('play').textContent='▶ Play';}function jump(n){stop();cncEnterBlock(Math.max(0,Math.min(steps.length,n)));render();}
 function load(){
  try{
@@ -1888,7 +1976,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
     const rx=stock.x*0.65 + largestTool/2;
     const ry=stock.y*0.65 + largestTool/2;
     const rz=stock.z/2 + clearance;
-    return Math.max(1, Math.sqrt(rx*rx+ry*ry+rz*rz));
+    return Math.max(1, Math.sqrt(rx*rx+ry*ry+rz*rz),cncReferenceViewRadius());
   }
   function viewScale(){
     return (Math.min(c3.width, c3.height) * 0.34 * zoom) / modelRadius();
@@ -2097,7 +2185,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
     return (vals.length?Math.max(...vals):10)/2;
   }
   function rotPoint(x,y,z){
-    const cx=stock.x/2, cy=stock.y/2, cz=-stock.z/2;
+    const center=cncReferenceViewCenter(),cx=center.x,cy=center.y,cz=center.z;
     const dx=x-cx, dy=y-cy, dz=z-cz;
     const ca=Math.cos(az), sa=Math.sin(az);
     const x1=dx*ca-dy*sa;
@@ -2112,7 +2200,7 @@ $('cnc-sample-program').addEventListener('change',event=>{
     const rx = stock.x/2 + toolMargin;
     const ry = stock.y/2 + toolMargin;
     const rz = stock.z/2 + Math.max(30, stock.z*2.2);
-    return Math.max(1, Math.sqrt(rx*rx+ry*ry+rz*rz));
+    return Math.max(1, Math.sqrt(rx*rx+ry*ry+rz*rz),cncReferenceViewRadius());
   }
   function viewScale(){
     return (Math.min(c3.width,c3.height)*0.34*zoom)/modelRadius();
@@ -2404,7 +2492,7 @@ load=function(){if(oldLoad()===false)return false;warnings=warnings.filter(w=>!w
 function normalize(a){let l=Math.hypot(...a);return a.map(x=>x/(l||1));}
 function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
 function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
-function matrix(){let eye=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)].map(v=>v*3);let forward=normalize(eye.map(v=>-v));let right=normalize(cross(forward,[0,0,1]));if(Math.hypot(...right)<.01)right=[1,0,0];let up=cross(right,forward);let aspect=webCanvas.width/webCanvas.height;const radiusFit=Math.hypot(stock.x,stock.y,stock.z)*0.72 + 0.4*Math.max(20,...Object.values(diam||{}));let span=Math.max(10,radiusFit*0.87)/Math.max(.4,zoom);let sx=1/(span*Math.max(1,aspect)),sy=1/(span*Math.max(1,1/aspect)),sz=1/(span*5);const cx=stock.x/2,cy=stock.y/2,cz=-stock.z/2;
+function matrix(){let eye=[Math.cos(az)*Math.cos(el),Math.sin(az)*Math.cos(el),Math.sin(el)].map(v=>v*3);let forward=normalize(eye.map(v=>-v));let right=normalize(cross(forward,[0,0,1]));if(Math.hypot(...right)<.01)right=[1,0,0];let up=cross(right,forward);let aspect=webCanvas.width/webCanvas.height;const radiusFit=Math.max(Math.hypot(stock.x,stock.y,stock.z)*0.72 + 0.4*Math.max(20,...Object.values(diam||{})),cncReferenceViewRadius());let span=Math.max(10,radiusFit*0.87)/Math.max(.4,zoom);let sx=1/(span*Math.max(1,aspect)),sy=1/(span*Math.max(1,1/aspect)),sz=1/(span*5);const center=cncReferenceViewCenter(),cx=center.x,cy=center.y,cz=center.z;
 // construct column-major matrix with eye basis and translated center
  return new Float32Array([right[0]*sx,up[0]*sy,forward[0]*sz,0,right[1]*sx,up[1]*sy,forward[1]*sz,0,right[2]*sx,up[2]*sy,forward[2]*sz,0,-dot(right,[cx,cy,cz])*sx,-dot(up,[cx,cy,cz])*sy,-dot(forward,[cx,cy,cz])*sz,1]);}
 let vertices=[],featureEdges=[];
@@ -3979,7 +4067,7 @@ render=function(n=cursor,f=1){
  $('progress').textContent=n+' / '+steps.length;
  $('seek').value=n;
  $('ws-status').textContent='G54 ('+origin.x+', '+origin.y+', '+origin.z+') · '+(stock.shape==='cylinder'?'Ø'+stock.x:stock.x+' × '+stock.y)+' × '+stock.z+' mm';
- if(e){$('cmd').textContent=e.n+'   '+e.code;$('mode').textContent=e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP';$('description').textContent=e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?'Executing '+e.n+' with tool T'+(s.tool||'?')+'.':'Executing a modal, spindle or tool command.';}else{$('cmd').textContent='Ready';$('mode').textContent='READY';$('description').textContent='Preview ready. Use Play or Step to begin.';$('op').textContent='Ready';}
+ if(e){$('cmd').textContent=e.n+'   '+e.code;$('mode').textContent=e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP';$('description').textContent=e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?'Executing '+e.n+' with tool T'+(s.tool||'?')+'.':'Executing a modal, spindle or tool command.';}else{$('cmd').textContent='Ready';$('mode').textContent='READY';$('description').textContent='Preview ready. Use Play or Step to begin.';$('op').textContent='Ready';}
  studioDisplayedBlock=n;
 };
 const studioOriginalOverlay=overlay;
@@ -6778,7 +6866,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
  // All editable project data goes through one debounced, validated reload.
  // Camera/view controls and playback speed are presentation state, not edits.
  const editor=$('source'),status=$('cnc-auto-status');
- const fields=['sx','sy','sz','ox','oy','oz','stockshape','threadsurface','resolution'];
+ const fields=['sx','sy','sz','ox','oy','oz','hx','hy','hz','stockshape','threadsurface','resolution'];
  const playback=['play','next','prev','seek'];
  const priorLoad=load,priorRender=render;
  let timer=0,dirty=false,composing=false,committing=false,importId=0,activeImport=null;
@@ -7080,6 +7168,9 @@ function issuesForDraft(){
    if(letter==='M'&&!KNOWN_M.has(value))report('warning',i+1,at,'M'+value+' may require controller-specific verification.');
   }
   const g=words.filter(w=>w[1].toUpperCase()==='G').map(w=>Number(w[2]));
+  const addresses=Object.fromEntries(words.filter(w=>!['G','M','N'].includes(w[1].toUpperCase())).map(w=>[w[1].toUpperCase(),Number(w[2])]));
+  const referenceError=cncReferenceReturnError(g,addresses);
+  if(referenceError)report('error',i+1,at,referenceError);
   if(g.includes(90)&&g.includes(91))report('error',i+1,at,'Conflicting G90 and G91 in one block.');
   if(g.includes(20)&&g.includes(21))report('error',i+1,at,'Conflicting G20 and G21 in one block.');
   if(g.includes(52)&&g.includes(53))report('error',i+1,at,'Conflicting G52 and G53 in one block.');
@@ -7091,7 +7182,7 @@ function displayLocal(){
  const problems=issuesForDraft();
  localList.replaceChildren();
  const errors=problems.filter(x=>x.severity==='error').length;
- const warnings=problems.filter(x=>x.severity==='warning').length;
+ const syntaxWarningCount=problems.filter(x=>x.severity==='warning').length;
  const actual=loadedText===editor.value&&typeof cncIssues!=='undefined'&&Array.isArray(cncIssues)?cncIssues:[];
  const unique=[];
  for(const d of actual.slice(0,15)){
@@ -7105,8 +7196,14 @@ function displayLocal(){
   const seq=/\bN\s*(\d+)\b/i.exec(code);
   unique.push({severity:'error',text:seq?'N'+seq[1]:'line '+finding.line,explanation:finding.message});
  }
- const count=errors+warnings+unique.length;
- localSummary.textContent=count?errors+' syntax error(s), '+warnings+' warning(s), '+unique.length+' simulation finding(s).':'✓ No issues found by current rule checks (not a safety certification).';
+ if(loadedText===editor.value){
+  for(const message of warnings.filter(w=>/not yet geometrically implemented|not simulated|not supported/.test(w)).slice(0,12)){
+   const split=message.indexOf(': ');
+   unique.push({severity:'warning',text:split>=0?message.slice(0,split):'Simulator limitation',explanation:'Simulator limitation: '+(split>=0?message.slice(split+2):message)});
+  }
+ }
+ const count=errors+syntaxWarningCount+unique.length;
+ localSummary.textContent=count?errors+' validation error(s), '+syntaxWarningCount+' warning(s), '+unique.length+' simulation finding(s).':'✓ No issues found by current rule checks (not a safety certification).';
  localSummary.dataset.kind=errors?'error':count?'warning':'ok';
  for(const p of [...problems,...unique].slice(0,12)){
   const entry=document.createElement('div');entry.className='cnc-validation-issue '+p.severity;
@@ -7116,7 +7213,7 @@ function displayLocal(){
  }
  if(problems.length+unique.length>12)add(localList,'span','More findings may be available in full program diagnostics.');
 }
-function payloadSignature(){return editor.value+'\n'+fanucManualContext()+'\n'+rules.value+'\n'+['stockshape','sx','sy','sz','ox','oy','oz'].map(id=>document.getElementById(id)?.value||'').join('|');}
+function payloadSignature(){return editor.value+'\n'+fanucManualContext()+'\n'+rules.value+'\n'+['stockshape','sx','sy','sz','ox','oy','oz','hx','hy','hz'].map(id=>document.getElementById(id)?.value||'').join('|');}
 function reviewAfter(reason='edit',delay=FOCUS_DELAY){
  revision++;
  clearTimeout(localTimer);clearTimeout(cloudTimer);
@@ -7194,7 +7291,7 @@ async function review(manual){
  const data={
   code:editor.value.slice(0,24000),
   requirements:(DEFAULT_RULES+'\n'+fanucManualContext()+'\n'+rules.value.trim()).slice(0,7000),turnstileToken:token,
-  setup:{shape:val('stockshape'),stockX:val('sx'),stockY:val('sy'),stockZ:val('sz'),g54X:val('ox'),g54Y:val('oy'),g54Z:val('oz')},
+  setup:{shape:val('stockshape'),stockX:val('sx'),stockY:val('sy'),stockZ:val('sz'),g54X:val('ox'),g54Y:val('oy'),g54Z:val('oz'),referenceX:val('hx'),referenceY:val('hy'),referenceZ:val('hz')},
   diagnostics:(document.getElementById('diag-list')?.innerText||localSummary.textContent).slice(0,5000)
  };
  loading=true;button.disabled=true;lastCloudAt=now;hourly.push(now);lastSent=sig;
@@ -7217,7 +7314,7 @@ editor.addEventListener('input',()=>reviewAfter('edit'));
 editor.addEventListener('change',()=>reviewAfter('edit'));
 document.addEventListener('cnc-program-loaded',()=>{loadedText=editor.value;reviewAfter('loaded');});
 document.addEventListener('cnc-project-updated',()=>{loadedText=editor.value;reviewAfter('updated');});
-for(const id of ['stockshape','sx','sy','sz','ox','oy','oz']){
+for(const id of ['stockshape','sx','sy','sz','ox','oy','oz','hx','hy','hz']){
  document.getElementById(id)?.addEventListener('change',()=>reviewAfter('setup'));
 }
 rules.addEventListener('input',()=>reviewAfter('requirements'));
@@ -7262,7 +7359,7 @@ const $=id=>document.getElementById(id);
 const uid=()=>('p-'+(crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)));
 const samples=[['face','Face/Mill'],['drill','Drill/Tap · MET 238 CW3'],['sub','Subprogram · Classwork 2']];
 let db=null, list=[], current='', dirty=false, suppress=0, busy=false, editRevision=0;
-const dataFields=['stockshape','threadsurface','sx','sy','sz','ox','oy','oz'];
+const dataFields=['stockshape','threadsurface','sx','sy','sz','ox','oy','oz','hx','hy','hz'];
 const css=`
 /* Integrated IndexedDB Programs controls. */
 .cnc-file-picker{display:none!important}
@@ -7291,6 +7388,7 @@ function snapshot(id,name){const settings={};for(const field of dataFields)setti
 function apply(p){suppress++;try{
   if(typeof window.cncTools?.restoreSnapshot==='function')window.cncTools.restoreSnapshot(p.tools||[]);
   $('source').value=p.code||'';
+  for(const axis of ['x','y','z'])$('h'+axis).value=String(p.settings?.['h'+axis]??CNC_REFERENCE_DEFAULT[axis]);
   for(const field of dataFields)if($(field)&&p.settings?.[field]!==undefined)$(field).value=String(p.settings[field]);
   // Exactly one simulation rebuild, with G-code and tool data already applied.
   if(typeof load==='function')load();else $('source').dispatchEvent(new Event('input',{bubbles:true}));
@@ -7316,7 +7414,7 @@ async function save(forceAs=false){if(busy)return;if(window.cncAutoUpdate?.getSt
  await request('readwrite',s=>s.put(saved));
  current=id;dirty=editRevision!==revision;await refresh();message(dirty?'Unsaved changes':'Saved locally');
  }finally{busy=false;}}
-async function newProgram(){if(busy||hasUnsaved())return;apply({id:'',name:'New program',code:'',settings:{stockshape:'rect',threadsurface:'auto',sx:'60',sy:'60',sz:'15',ox:'30',oy:'30',oz:'0'},tools:[{number:1,type:'Flat end mill',diameter:10,fluteLength:20,angle:90,pitch:1,tipDiameter:0}]});message('New program');}
+async function newProgram(){if(busy||hasUnsaved())return;apply({id:'',name:'New program',code:'',settings:{stockshape:'rect',threadsurface:'auto',sx:'60',sy:'60',sz:'15',ox:'30',oy:'30',oz:'0',hx:'0',hy:'0',hz:'100'},tools:[{number:1,type:'Flat end mill',diameter:10,fluteLength:20,angle:90,pitch:1,tipDiameter:0}]});message('New program');}
 async function rename(){if(busy)return;if(!current||current.startsWith('sample:'))return message('Save a copy of this sample to rename it');const p=list.find(x=>x.id===current);if(!p)return;const entered=prompt('Rename program:',p.name);if(!entered?.trim())return;p.name=entered.trim().slice(0,100);p.updatedAt=new Date().toISOString();await request('readwrite',s=>s.put(p));await refresh();message('Renamed');}
 async function duplicate(){await save(true);}
 async function remove(){if(busy||!current)return;if(current.startsWith('sample:'))return message('Built-in samples cannot be deleted');if(!confirm('Delete this saved program from this browser?'))return;await request('readwrite',s=>s.delete(current));current='';await refresh();await newProgram();message('Deleted saved program');}
