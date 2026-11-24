@@ -556,10 +556,37 @@ function diameterMap(tools){const result={};for(const r of tools)result[r.number
 function collect(){return diameterMap(validate());}
 function commit(){committedRecords=validate();return diameterMap(committedRecords);}
 function validateProgram(steps){
- const available=new Set(validate().map(r=>r.number));
+ const toolList=validate(),available=new Set(toolList.map(r=>r.number));
+ const byNumber=new Map(toolList.map(r=>[r.number,r]));
  for(const step of steps)for(const state of [step.before,step.after]){
   const number=Number(state&&state.tool);
-   if(number&&!available.has(number))throw cncSourceError(step.location,'Program uses T'+number+', which is missing from the tool library. Add or renumber the tool, or update the program.');
+  if(number&&!available.has(number))throw cncSourceError(step.location,'Program uses T'+number+', which is missing from the tool library. Add or renumber the tool, or update the program.');
+ }
+ // A physical cutter cannot execute a compensated concave corner whose
+ // centreline radius is zero or negative. Previously an impossible G03 R3
+ // using an 8-mm tip silently fell back to the uncompensated arc and gouged
+ // the pocket rim. Detect this before stock removal begins.
+ for(const e of steps){
+  if(!e?.arc||!e.hasMove||![41,42].includes(e.after?.comp))continue;
+  const side=(e.after.comp===41?1:-1)*(e.mode===3?-1:1);
+  if(side>=0)continue;
+  const reg=Number.isInteger(e.after.dOffset)&&e.after.dOffset>0?e.after.dOffset:e.after.tool;
+  const tool=byNumber.get(reg)||byNumber.get(e.after.tool);
+  if(!tool||tool.type!=='Chamfer mill')continue;
+  const units=e.after.units||1,p=e.params||{};
+  let programmedRadius=NaN;
+  if(Number.isFinite(p.R))programmedRadius=Math.abs(p.R*units);
+  else if(Number.isFinite(p.I)||Number.isFinite(p.J))
+   programmedRadius=Math.hypot((p.I||0)*units,(p.J||0)*units);
+  const offset=(Number(tool.tipDiameter)||0)/2;
+  if(Number.isFinite(programmedRadius)&&programmedRadius<=offset+1e-6){
+   const label=String(e.n||'G02/G03');
+   throw cncSourceError(e.location,
+    'T'+tool.number+' tip Ø'+tool.tipDiameter+' mm cannot machine concave '+label+
+    ' (R'+programmedRadius.toFixed(3)+' mm) with G'+e.after.comp+
+    ': automatic offset '+offset.toFixed(3)+' mm gives an invalid centreline radius ('+
+    (programmedRadius-offset).toFixed(3)+' mm). Use a smaller chamfer tip or enlarge the programmed inside corner radius. CNC Studio will not render a gouging fallback.');
+  }
  }
  return true;
 }
@@ -598,22 +625,7 @@ function renderRows(){
  fld('Tool number','number');fld('Type','type','select',TYPES);fld('Diameter (mm)','diameter');fld('Flute length (mm)','fluteLength');
  if(['Chamfer mill','Twist drill','Spot drill','Thread mill'].includes(rec.type))fld(rec.type==='Thread mill'?'Thread flank angle (°)':'Included angle (°)','angle');
  if(['Tap','Thread mill'].includes(rec.type))fld('Pitch (mm)','pitch');
- if(rec.type==='Chamfer mill'){
-  fld('Tip diameter (mm)','tipDiameter');
-  const display=document.createElement('label');
-  display.textContent='Automatic D radius (mm)';
-  const preview=document.createElement('input');
-  preview.type='text';preview.readOnly=true;preview.dataset.cncAutoD=String(rec.number);
-  preview.value=(Math.max(0,Number(rec.tipDiameter)||0)/2).toFixed(3);
-  preview.title='Automatic G41/G42 offset = half of tip diameter for a lower-edge referenced chamfer contour';
-  preview.style.cssText='cursor:default;opacity:.92';
-  display.append(preview);fields.append(display);
-  const guidance=document.createElement('p');
-  guidance.className='small';
-  guidance.style.cssText='grid-column:1 / -1;margin:0;line-height:1.45';
-  guidance.textContent='D is calculated from tip diameter (D = tip Ø / 2). The cone contact radius at stock surface is larger and is evaluated separately for material removal. Assumes the G-code follows the finished lower chamfer edge.';
-  fields.append(guidance);
- }
+ if(rec.type==='Chamfer mill')fld('Tip diameter (mm)','tipDiameter');
  item.append(fields);panel.append(item);
  }
  panel.scrollTop=oldScroll;
@@ -773,19 +785,7 @@ $('tooljson').addEventListener('change',async e=>{
    return message;
  }
 records=seed();commit();renderRows();
-function refreshAutomaticDReadouts(){
- for(const input of document.querySelectorAll('[data-cnc-auto-d]')){
-  const number=Number(input.dataset.cncAutoD);
-  const draft=records.find(r=>Number(r.number)===number);
-  const calc=window.CNCStudioChamferAuto;
-  input.value=calc?.preview?.(number,draft)??'Calculated from G-code';
-  const details=calc?.details?.(number,draft);
-  if(details)input.title='Surface Z'+details.surfaceZ.toFixed(2)+
-   ' mm, tip Z'+details.tipZ.toFixed(2)+' mm; '+(details.inferredFacing?'preceding facing pass':'stock top assumed');
- }
-}
-document.addEventListener('cnc-program-loaded',refreshAutomaticDReadouts);
-document.addEventListener('cnc-tools-change',refreshAutomaticDReadouts);
+
 
 function clearForImport(){records=[];removedNumbers.clear();renderRows();}
  window.cncTools={restoreSnapshot,clearForImport,collect,ensure,name,resetExample,setDrillingTestTools,setClasswork2,setClasswork2023,mergeFromDocument,extractToolHints,snapshotDraft,validate,commit,validateProgram,get:number=>{const r=committedRecords.find(t=>t.number===Number(number));return r?{...r}:null;}};
@@ -3538,7 +3538,7 @@ segments=function(e){
  else if('R'in p){const d=Math.hypot(b.x-a.x,b.y-a.y),R=Math.abs(p.R*e.after.units);if(d>0&&d<=2*R){const h=Math.sqrt(Math.max(0,R*R-d*d/4)),sgn=(e.mode===2?-1:1)*(p.R<0?-1:1);center={x:(a.x+b.x)/2-sgn*(b.y-a.y)/d*h,y:(a.y+b.y)/2+sgn*(b.x-a.x)/d*h};}}
  if(!center)return cncLinearCompSegments(e);
  const originalR=Math.hypot(a.x-center.x,a.y-center.y),side=(comp===41?1:-1)*(e.mode===3?-1:1),rr=originalR+side*r;
- if(rr<=0.001)return cncLinearCompSegments(e);
+ if(rr<=0.001)throw cncSourceError(e.location,'Impossible G41/G42 concave arc: compensated cutter-center radius is '+rr.toFixed(3)+' mm. Change the tool-tip diameter or programmed corner radius.');
  let a0=Math.atan2(a.y-center.y,a.x-center.x),a1=Math.atan2(b.y-center.y,b.x-center.x),sweep=a1-a0;
  if(e.mode===2){while(sweep>=-1e-10)sweep-=2*Math.PI;}else{while(sweep<=1e-10)sweep+=2*Math.PI;}
  const count=Math.min(3600,Math.max(64,Math.ceil(Math.abs(rr*sweep)/0.45))),out=[];
