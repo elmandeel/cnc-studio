@@ -514,7 +514,7 @@ const seed=()=>[
 const sanitize=r=>{
  const number=numeric(r.number),diameter=numeric(r.diameter),fluteLength=numeric(r.fluteLength);
  let angle=numeric(r.angle),pitch=numeric(r.pitch),tipDiameter=numeric(r.tipDiameter),compRadius=numeric(r.compRadius);
- const compMode=r.type==='Chamfer mill'?(r.compMode==='manual'?'manual':'auto'):'manual';
+ const compMode='auto';
  if(!Number.isInteger(number)||number<1||number>9999)throw Error('Tool numbers must be integers from 1 to 9999.');
  if(!TYPES.includes(r.type))throw Error('T'+number+': choose a valid tool type.');
  if(!Number.isFinite(diameter)||diameter<=0||diameter>500)throw Error('T'+number+': diameter must be greater than 0 and at most 500 mm.');
@@ -526,8 +526,9 @@ const sanitize=r=>{
  // existing saved tools, retain their previous compensation on migration:
  // chamfer -> old tip radius; other tools -> nominal tool radius.
  if(r.type==='Chamfer mill'){
-  if(!Number.isFinite(compRadius))compRadius=tipDiameter/2;
-  if(compRadius<0||compRadius>diameter/2)throw Error('T'+number+': D radius offset must be between 0 and '+(diameter/2)+' mm.');
+  // The programmed contour is the lower edge of the finished chamfer:
+  // D = tip radius, NOT the wider cone contact radius at the top face.
+  compRadius=tipDiameter/2;
  }else{
   // Other tool types continue to derive their D radius from their diameter,
   // so editing an end mill from Ø16 to Ø6 never leaves a hidden stale offset.
@@ -568,10 +569,9 @@ function renderRows(){
  panel.textContent='';$('toolcount').textContent=records.length+' tools';
  let restoreFocus=null;
  for(const rec of records){
-  // Backward-compatible old saved tools default to Automatic D.
   if(rec.type==='Chamfer mill'){
-   if(rec.compMode!=='manual')rec.compMode='auto';
-   if(!Number.isFinite(numeric(rec.compRadius)))rec.compRadius=(Number(rec.tipDiameter)||0)/2;
+   rec.compMode='auto';
+   rec.compRadius=Math.max(0,(Number(rec.tipDiameter)||0)/2);
   }
  const item=document.createElement('div');item.className='toolentry';
  const head=document.createElement('div');head.className='toolhead';
@@ -600,25 +600,18 @@ function renderRows(){
  if(['Tap','Thread mill'].includes(rec.type))fld('Pitch (mm)','pitch');
  if(rec.type==='Chamfer mill'){
   fld('Tip diameter (mm)','tipDiameter');
-  fld('D compensation','compMode','select',['auto','manual']);
-  if(rec.compMode==='manual'){
-   fld('Manual D radius offset (mm)','compRadius');
-  }else{
-   const display=document.createElement('label');
-   display.textContent='Auto D contact radius (mm)';
-   const preview=document.createElement('input');
-   preview.type='text';preview.readOnly=true;preview.dataset.cncAutoD=String(rec.number);
-   preview.value=window.CNCStudioChamferAuto?.preview?.(rec.number,rec)??'Calculated from G-code';
-   preview.title='Simulation estimate from the preceding face-milling surface and the programmed chamfer tip Z';
-   preview.style.cssText='cursor:default;opacity:.92';
-   display.append(preview);fields.append(display);
-  }
+  const display=document.createElement('label');
+  display.textContent='Automatic D radius (mm)';
+  const preview=document.createElement('input');
+  preview.type='text';preview.readOnly=true;preview.dataset.cncAutoD=String(rec.number);
+  preview.value=(Math.max(0,Number(rec.tipDiameter)||0)/2).toFixed(3);
+  preview.title='Automatic G41/G42 offset = half of tip diameter for a lower-edge referenced chamfer contour';
+  preview.style.cssText='cursor:default;opacity:.92';
+  display.append(preview);fields.append(display);
   const guidance=document.createElement('p');
   guidance.className='small';
   guidance.style.cssText='grid-column:1 / -1;margin:0;line-height:1.45';
-  guidance.textContent=rec.compMode==='manual'
-    ?'Manual D is a simulated G41/G42 radius-register value. Tip Ø still controls the conical cutter.'
-    :'Auto D uses the preceding facing depth, programmed tool-tip Z, tip Ø and included angle. If no face pass is found, stock top Z0 is assumed. Controller D-table conventions may differ.';
+  guidance.textContent='D is calculated from tip diameter (D = tip Ø / 2). The cone contact radius at stock surface is larger and is evaluated separately for material removal. Assumes the G-code follows the finished lower chamfer edge.';
   fields.append(guidance);
  }
  item.append(fields);panel.append(item);
@@ -5935,8 +5928,10 @@ function cncAutoChamferD(toolNumber,spec,tipZ){
  const face=cncAutoChamferLevels().faceByTool.get(Number(toolNumber))??0;
  const z=Number.isFinite(tipZ)?tipZ:(cncAutoChamferLevels().tipByTool.get(Number(toolNumber))??0);
  const depth=Math.max(0,face-z);
- const value=Math.max(0,Math.min(nominal,tipR+depth*Math.tan(halfAngle)));
- return {radius:value,surfaceZ:face,tipZ:z,depth,
+ const contactRadius=Math.max(0,Math.min(nominal,tipR+depth*Math.tan(halfAngle)));
+ // D compensates the programmer's lower-edge contour; the cone envelope
+ // uses contactRadius at the exposed face without shifting the tool again.
+ return {radius:tipR,contactRadius,surfaceZ:face,tipZ:z,depth,
   inferredFacing:cncAutoChamferLevels().faceFoundByTool.get(Number(toolNumber))||false};
 }
 window.CNCStudioChamferAuto={
@@ -5958,16 +5953,11 @@ radius=function(st){
  const register=Number.isInteger(st.dOffset)&&st.dOffset>0?st.dOffset:st.tool;
  const offsetTool=window.cncTools?.get?.(register)||window.cncTools?.get?.(st.tool);
  if(!offsetTool)return nominal;
- if(offsetTool.type==='Chamfer mill'&&offsetTool.compMode!=='manual'){
-  const tipZ=Number.isFinite(st.z)?st.z+origin.z:undefined;
-  return cncAutoChamferD(register,offsetTool,tipZ).radius;
- }
- const configured=Number(offsetTool.compRadius);
- return Number.isFinite(configured)&&configured>=0
-  ?configured
-  :(offsetTool.type==='Chamfer mill'
-    ?Math.max(0,(Number(offsetTool.tipDiameter)||0)/2)
-    :nominal);
+ // Fully automatic. A lower-edge-referenced chamfer uses the flat tip radius
+ // for G41/G42. The worker still expands the cone toward the stock surface.
+ if(offsetTool.type==='Chamfer mill')
+  return Math.max(0,Math.min(nominal,(Number(offsetTool.tipDiameter)||0)/2));
+ return nominalRadiusForChamfer({ ...st,tool:offsetTool.number||st.tool });
 };
 const nominalDisplayCutter=meshCutter;
 meshCutter=function(st){return nominalDisplayCutter(st?{...st,__visualRadius:true}:st);};
