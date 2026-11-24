@@ -513,7 +513,7 @@ const seed=()=>[
 ];
 const sanitize=r=>{
  const number=numeric(r.number),diameter=numeric(r.diameter),fluteLength=numeric(r.fluteLength);
- let angle=numeric(r.angle),pitch=numeric(r.pitch),tipDiameter=numeric(r.tipDiameter);
+ let angle=numeric(r.angle),pitch=numeric(r.pitch),tipDiameter=numeric(r.tipDiameter),compRadius=numeric(r.compRadius);
  if(!Number.isInteger(number)||number<1||number>9999)throw Error('Tool numbers must be integers from 1 to 9999.');
  if(!TYPES.includes(r.type))throw Error('T'+number+': choose a valid tool type.');
  if(!Number.isFinite(diameter)||diameter<=0||diameter>500)throw Error('T'+number+': diameter must be greater than 0 and at most 500 mm.');
@@ -521,7 +521,14 @@ const sanitize=r=>{
  if(!Number.isFinite(angle)||angle<=0||angle>=180){if(['Chamfer mill','Twist drill','Spot drill','Thread mill'].includes(r.type))throw Error('T'+number+': included angle must be greater than 0 and less than 180 degrees.');angle=90;}
  if(!Number.isFinite(pitch)||pitch<=0){if(['Tap','Thread mill'].includes(r.type))throw Error('T'+number+': pitch must be greater than 0 mm.');pitch=1;}
  if(!Number.isFinite(tipDiameter)||tipDiameter<0||tipDiameter>diameter){if(r.type==='Chamfer mill')throw Error('T'+number+': tip diameter must be between 0 and the tool diameter.');tipDiameter=0;}
- return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter};
+ // Separate Fanuc D-register compensation from the physical cutter tip. For
+ // existing saved tools, retain their previous compensation on migration:
+ // chamfer -> old tip radius; other tools -> nominal tool radius.
+ if(!Number.isFinite(compRadius)){
+  compRadius=r.type==='Chamfer mill'?tipDiameter/2:diameter/2;
+ }
+ if(compRadius<0||compRadius>diameter/2)throw Error('T'+number+': D radius offset must be between 0 and '+(diameter/2)+' mm.');
+ return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter,compRadius};
 };
 function snapshotDraft(){return records.map(copyRecord);}
 function restoreSnapshot(snapshot){
@@ -556,6 +563,11 @@ function renderRows(){
  panel.textContent='';$('toolcount').textContent=records.length+' tools';
  let restoreFocus=null;
  for(const rec of records){
+  // Freeze the initial D register when the entry is first displayed. Changing
+  // Tip diameter afterwards must not silently change its cutter-center path.
+  if(!Number.isFinite(numeric(rec.compRadius))){
+   rec.compRadius=rec.type==='Chamfer mill'?(Number(rec.tipDiameter)||0)/2:(Number(rec.diameter)||10)/2;
+  }
  const item=document.createElement('div');item.className='toolentry';
  const head=document.createElement('div');head.className='toolhead';
  const title=document.createElement('b');title.textContent='T'+rec.number;
@@ -581,7 +593,15 @@ function renderRows(){
  fld('Tool number','number');fld('Type','type','select',TYPES);fld('Diameter (mm)','diameter');fld('Flute length (mm)','fluteLength');
  if(['Chamfer mill','Twist drill','Spot drill','Thread mill'].includes(rec.type))fld(rec.type==='Thread mill'?'Thread flank angle (°)':'Included angle (°)','angle');
  if(['Tap','Thread mill'].includes(rec.type))fld('Pitch (mm)','pitch');
- if(rec.type==='Chamfer mill')fld('Tip diameter (mm)','tipDiameter');
+ if(rec.type==='Chamfer mill'){
+  fld('Tip diameter (mm)','tipDiameter');
+  fld('D radius offset (mm)','compRadius');
+  const guidance=document.createElement('p');
+  guidance.className='small';
+  guidance.style.cssText='grid-column:1 / -1;margin:0;line-height:1.45';
+  guidance.textContent='Tip Ø defines the cone; D radius offset controls G41/G42 centerline independently. Update D and/or Z when changing tip Ø to maintain the intended chamfer size.';
+  fields.append(guidance);
+ }
  item.append(fields);panel.append(item);
  }
  panel.scrollTop=oldScroll;
@@ -1409,7 +1429,7 @@ function parse(workOrigin=origin,referencePosition=CNC_REFERENCE_DEFAULT){
  const blocks=source.split(/\r?\n/).map((line,i)=>({line,sourceLine:i+1,location:locations[i]}));
  const expanded=cncExpandPrograms(blocks);
  expanded.output=cncExpandDrillingCycles(expanded.output,workOrigin,referencePosition);
- let s={x:null,y:null,z:null,mode:0,abs:true,units:1,plane:17,tool:0,rpm:0,feed:0,spindle:false,comp:0,g52x:0,g52y:0,g52z:0},out=[],warn=[...expanded.problems];
+ let s={x:null,y:null,z:null,mode:0,abs:true,units:1,plane:17,tool:0,dOffset:0,rpm:0,feed:0,spindle:false,comp:0,g52x:0,g52y:0,g52z:0},out=[],warn=[...expanded.problems];
  for(const item of expanded.output){
  const clean=item.line.replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim(),location=item.location||cncSourceLocation(item.sourceLine,clean),label=cncBlockLabel(location),words=[...clean.matchAll(/([A-Za-z])\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(m=>({k:m[1].toUpperCase(),v:+m[2]}));
  if(!words.length)continue;
@@ -1436,7 +1456,7 @@ function parse(workOrigin=origin,referencePosition=CNC_REFERENCE_DEFAULT){
   }
   s.z=CNC_TOOL_CHANGE_Z;before.z=CNC_TOOL_CHANGE_Z;
  }
- if('T'in p)s.tool=p.T;if('S'in p)s.rpm=p.S;if('F'in p)s.feed=p.F*s.units;
+ if('T'in p)s.tool=p.T;if('D'in p)s.dOffset=p.D;if('S'in p)s.rpm=p.S;if('F'in p)s.feed=p.F*s.units;
 
  for(const v of m){if(v===3||v===4)s.spindle=true;else if([5,30,2].includes(v))s.spindle=false;else if(![6,8,9,98,99].includes(v))warn.push(label+': M'+v+' not simulated');}
  if(g.includes(28)){
@@ -5845,14 +5865,18 @@ asyncToggle.querySelector('input').addEventListener('change',()=>{
 const nominalRadiusForChamfer=radius;
 radius=function(st){
  const nominal=nominalRadiusForChamfer(st);
- if(!st||st.__visualRadius)return nominal;
- const spec=window.cncTools&&window.cncTools.get?window.cncTools.get(st.tool):null;
- if(!spec||!/chamfer|angle cutter/i.test(spec.type||''))return nominal;
- const tip=Math.max(0,Math.min(nominal,(+spec.tipDiameter||0)/2));
- const tan=Math.tan(Math.PI*Math.max(10,Math.min(170,+spec.angle||90))/360);
- const tipZ=(Number.isFinite(st.z)?st.z:0)+(origin.z||0);
- const contactZ=Math.max(-stock.z,Math.min(0,0));
- return Math.max(.05,tip); // geometry uses tip-centre reference; worker expands cone up to nominal radius
+ if(!st||st.__visualRadius||![41,42].includes(st.comp))return nominal;
+ // The D number is an offset-register reference, not the chamfer-tip diameter.
+ // MET 238 uses T3 / D3. D can also refer to a different tool-table register.
+ const register=Number.isInteger(st.dOffset)&&st.dOffset>0?st.dOffset:st.tool;
+ const offsetTool=window.cncTools?.get?.(register)||window.cncTools?.get?.(st.tool);
+ if(!offsetTool)return nominal;
+ const configured=Number(offsetTool.compRadius);
+ return Number.isFinite(configured)&&configured>=0
+   ?configured
+   :(offsetTool.type==='Chamfer mill'
+      ?Math.max(0,(Number(offsetTool.tipDiameter)||0)/2)
+      :nominal);
 };
 const nominalDisplayCutter=meshCutter;
 meshCutter=function(st){return nominalDisplayCutter(st?{...st,__visualRadius:true}:st);};
