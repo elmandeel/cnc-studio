@@ -514,6 +514,7 @@ const seed=()=>[
 const sanitize=r=>{
  const number=numeric(r.number),diameter=numeric(r.diameter),fluteLength=numeric(r.fluteLength);
  let angle=numeric(r.angle),pitch=numeric(r.pitch),tipDiameter=numeric(r.tipDiameter),compRadius=numeric(r.compRadius);
+ const compMode=r.type==='Chamfer mill'?(r.compMode==='manual'?'manual':'auto'):'manual';
  if(!Number.isInteger(number)||number<1||number>9999)throw Error('Tool numbers must be integers from 1 to 9999.');
  if(!TYPES.includes(r.type))throw Error('T'+number+': choose a valid tool type.');
  if(!Number.isFinite(diameter)||diameter<=0||diameter>500)throw Error('T'+number+': diameter must be greater than 0 and at most 500 mm.');
@@ -532,7 +533,7 @@ const sanitize=r=>{
   // so editing an end mill from Ø16 to Ø6 never leaves a hidden stale offset.
   compRadius=diameter/2;
  }
- return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter,compRadius};
+ return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter,compRadius,compMode};
 };
 function snapshotDraft(){return records.map(copyRecord);}
 function restoreSnapshot(snapshot){
@@ -567,10 +568,10 @@ function renderRows(){
  panel.textContent='';$('toolcount').textContent=records.length+' tools';
  let restoreFocus=null;
  for(const rec of records){
-  // Freeze the initial D register when the entry is first displayed. Changing
-  // Tip diameter afterwards must not silently change its cutter-center path.
-  if(rec.type==='Chamfer mill'&&!Number.isFinite(numeric(rec.compRadius))){
-   rec.compRadius=(Number(rec.tipDiameter)||0)/2;
+  // Backward-compatible old saved tools default to Automatic D.
+  if(rec.type==='Chamfer mill'){
+   if(rec.compMode!=='manual')rec.compMode='auto';
+   if(!Number.isFinite(numeric(rec.compRadius)))rec.compRadius=(Number(rec.tipDiameter)||0)/2;
   }
  const item=document.createElement('div');item.className='toolentry';
  const head=document.createElement('div');head.className='toolhead';
@@ -578,7 +579,7 @@ function renderRows(){
  const del=document.createElement('button');del.className='btn';del.textContent='Remove';del.onclick=()=>{rememberRemoved(Number(rec.number));records=records.filter(r=>r!==rec);renderRows();notify('remove',rec.number);};head.append(title,del);item.append(head);
  const fields=document.createElement('div');fields.className='toolfields';
  function fld(text,key,type='number',opts){const lab=document.createElement('label');lab.textContent=text;let el;
- if(type==='select'){el=document.createElement('select');for(const o of opts){const option=document.createElement('option');option.value=o;option.textContent=o;el.append(option);}el.value=rec[key];}
+ if(type==='select'){el=document.createElement('select');for(const o of opts){const option=document.createElement('option');option.value=o;option.textContent=key==='compMode'?(o==='auto'?'Automatic':'Manual'):o;el.append(option);}el.value=rec[key];}
  else {el=document.createElement('input');el.type='number';el.step=key==='number'?'1':'any';el.min=key==='number'?'1':key==='tipDiameter'?'0':'0.001';el.value=Number.isFinite(rec[key])?rec[key]:'';}
   el.dataset.toolField=key;el.__cncToolRecord=rec;
   if(key==='number')el.max='9999';if(key==='diameter')el.max='500';
@@ -589,7 +590,7 @@ function renderRows(){
    if(key==='number')rememberRemoved(Number(previous));
    rec[key]=value;
    if(key==='number')title.textContent=Number.isFinite(value)?'T'+value:'Tool number required';
-   if(key==='type')renderRows();
+   if(key==='type'||key==='compMode')renderRows();
    notify(key==='type'?'type':'input',rec.number,key);
   }
   el.addEventListener('change',update);
@@ -599,11 +600,25 @@ function renderRows(){
  if(['Tap','Thread mill'].includes(rec.type))fld('Pitch (mm)','pitch');
  if(rec.type==='Chamfer mill'){
   fld('Tip diameter (mm)','tipDiameter');
-  fld('D radius offset (mm)','compRadius');
+  fld('D compensation','compMode','select',['auto','manual']);
+  if(rec.compMode==='manual'){
+   fld('Manual D radius offset (mm)','compRadius');
+  }else{
+   const display=document.createElement('label');
+   display.textContent='Auto D contact radius (mm)';
+   const preview=document.createElement('input');
+   preview.type='text';preview.readOnly=true;preview.dataset.cncAutoD=String(rec.number);
+   preview.value=window.CNCStudioChamferAuto?.preview?.(rec.number,rec)??'Calculated from G-code';
+   preview.title='Simulation estimate from the preceding face-milling surface and the programmed chamfer tip Z';
+   preview.style.cssText='cursor:default;opacity:.92';
+   display.append(preview);fields.append(display);
+  }
   const guidance=document.createElement('p');
   guidance.className='small';
   guidance.style.cssText='grid-column:1 / -1;margin:0;line-height:1.45';
-  guidance.textContent='Tip Ø defines the cone; D radius offset controls G41/G42 centerline independently. Update D and/or Z when changing tip Ø to maintain the intended chamfer size.';
+  guidance.textContent=rec.compMode==='manual'
+    ?'Manual D is a simulated G41/G42 radius-register value. Tip Ø still controls the conical cutter.'
+    :'Auto D uses the preceding facing depth, programmed tool-tip Z, tip Ø and included angle. If no face pass is found, stock top Z0 is assumed. Controller D-table conventions may differ.';
   fields.append(guidance);
  }
  item.append(fields);panel.append(item);
