@@ -524,10 +524,14 @@ const sanitize=r=>{
  // Separate Fanuc D-register compensation from the physical cutter tip. For
  // existing saved tools, retain their previous compensation on migration:
  // chamfer -> old tip radius; other tools -> nominal tool radius.
- if(!Number.isFinite(compRadius)){
-  compRadius=r.type==='Chamfer mill'?tipDiameter/2:diameter/2;
+ if(r.type==='Chamfer mill'){
+  if(!Number.isFinite(compRadius))compRadius=tipDiameter/2;
+  if(compRadius<0||compRadius>diameter/2)throw Error('T'+number+': D radius offset must be between 0 and '+(diameter/2)+' mm.');
+ }else{
+  // Other tool types continue to derive their D radius from their diameter,
+  // so editing an end mill from Ø16 to Ø6 never leaves a hidden stale offset.
+  compRadius=diameter/2;
  }
- if(compRadius<0||compRadius>diameter/2)throw Error('T'+number+': D radius offset must be between 0 and '+(diameter/2)+' mm.');
  return {number,type:r.type,diameter,angle,fluteLength,pitch,tipDiameter,compRadius};
 };
 function snapshotDraft(){return records.map(copyRecord);}
@@ -565,8 +569,8 @@ function renderRows(){
  for(const rec of records){
   // Freeze the initial D register when the entry is first displayed. Changing
   // Tip diameter afterwards must not silently change its cutter-center path.
-  if(!Number.isFinite(numeric(rec.compRadius))){
-   rec.compRadius=rec.type==='Chamfer mill'?(Number(rec.tipDiameter)||0)/2:(Number(rec.diameter)||10)/2;
+  if(rec.type==='Chamfer mill'&&!Number.isFinite(numeric(rec.compRadius))){
+   rec.compRadius=(Number(rec.tipDiameter)||0)/2;
   }
  const item=document.createElement('div');item.className='toolentry';
  const head=document.createElement('div');head.className='toolhead';
