@@ -7072,6 +7072,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   }
   const retain=completed>0&&sameSetup&&
     prepared.parsed.out.length>=completed&&
+    !previousSteps.slice(0,completed).some(block=>block.ends)&&
     previousSteps.slice(0,completed).every((block,index)=>equalStep(block,prepared.parsed.out[index]));
   state('updating','Updating preview…');committing=true;
   try{
