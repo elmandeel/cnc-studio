@@ -780,6 +780,20 @@ $('tooljson').addEventListener('change',async e=>{
    return message;
  }
 records=seed();commit();renderRows();
+function refreshAutomaticDReadouts(){
+ for(const input of document.querySelectorAll('[data-cnc-auto-d]')){
+  const number=Number(input.dataset.cncAutoD);
+  const draft=records.find(r=>Number(r.number)===number);
+  const calc=window.CNCStudioChamferAuto;
+  input.value=calc?.preview?.(number,draft)??'Calculated from G-code';
+  const details=calc?.details?.(number,draft);
+  if(details)input.title='Surface Z'+details.surfaceZ.toFixed(2)+
+   ' mm, tip Z'+details.tipZ.toFixed(2)+' mm; '+(details.inferredFacing?'preceding facing pass':'stock top assumed');
+ }
+}
+document.addEventListener('cnc-program-loaded',refreshAutomaticDReadouts);
+document.addEventListener('cnc-tools-change',refreshAutomaticDReadouts);
+
 function clearForImport(){records=[];removedNumbers.clear();renderRows();}
  window.cncTools={restoreSnapshot,clearForImport,collect,ensure,name,resetExample,setDrillingTestTools,setClasswork2,setClasswork2023,mergeFromDocument,extractToolHints,snapshotDraft,validate,commit,validateProgram,get:number=>{const r=committedRecords.find(t=>t.number===Number(number));return r?{...r}:null;}};
 })();
@@ -5878,24 +5892,82 @@ load=function(){
 asyncToggle.querySelector('input').addEventListener('change',()=>{
  if(asyncToggle.querySelector('input').checked)asyncTarget(cursor);
 });
-// Chamfer cutter-center offsets use the effective radius at the workpiece
-// surface rather than the nominal maximum cone radius (which may be above it).
-// Preserve full nominal diameter for on-screen cutter geometry.
+// Chamfer D is a separate radius *register*. In Automatic mode CNC Studio
+// estimates the cone's contact radius at the most recently faced stock surface.
+// No face-milling pass => the original stock top Z=0 is used. This simulation
+// convention is not a substitute for the machine controller's actual D table.
 const nominalRadiusForChamfer=radius;
+let cncChamferDCache={steps:null,stockZ:null,originZ:null,faceByTool:new Map(),tipByTool:new Map()};
+function cncAutoChamferLevels(){
+ if(cncChamferDCache.steps===steps &&
+    cncChamferDCache.stockZ===stock.z &&
+    cncChamferDCache.originZ===origin.z)return cncChamferDCache;
+ let latestFaceZ=0,foundFace=false;
+ const faceByTool=new Map(),tipByTool=new Map(),faceFoundByTool=new Map();
+ for(const e of steps){
+  if(!e?.hasMove||e.mode===0)continue;
+  const tool=e.after?.tool||e.before?.tool||0;
+  const spec=window.cncTools?.get?.(tool);
+  if(!spec)continue;
+  if(/face mill|facing cutter/i.test(spec.type||'')){
+   const za=Number(e.before?.z),zb=Number(e.after?.z);
+   const cutZ=Math.min(Number.isFinite(za)?za:Infinity,Number.isFinite(zb)?zb:Infinity)+origin.z;
+   if(Number.isFinite(cutZ)&&cutZ<0&&cutZ>=-stock.z){
+    latestFaceZ=cutZ;foundFace=true;
+   }
+  }
+  if(/chamfer|angle cutter/i.test(spec.type||'')&&!tipByTool.has(tool)){
+   const tipZ=Number.isFinite(e.after?.z)?e.after.z+origin.z:0;
+   if(!Number.isFinite(tipZ))continue;
+   faceByTool.set(tool,latestFaceZ);
+   tipByTool.set(tool,tipZ);
+   faceFoundByTool.set(tool,foundFace);
+  }
+ }
+ cncChamferDCache={steps,stockZ:stock.z,originZ:origin.z,
+  faceByTool,tipByTool,faceFoundByTool};
+ return cncChamferDCache;
+}
+function cncAutoChamferD(toolNumber,spec,tipZ){
+ const nominal=Math.max(.05,(Number(spec.diameter)||10)/2);
+ const tipR=Math.max(0,Math.min(nominal,(Number(spec.tipDiameter)||0)/2));
+ const halfAngle=Math.max(10,Math.min(170,Number(spec.angle)||90))*Math.PI/360;
+ const face=cncAutoChamferLevels().faceByTool.get(Number(toolNumber))??0;
+ const z=Number.isFinite(tipZ)?tipZ:(cncAutoChamferLevels().tipByTool.get(Number(toolNumber))??0);
+ const depth=Math.max(0,face-z);
+ const value=Math.max(0,Math.min(nominal,tipR+depth*Math.tan(halfAngle)));
+ return {radius:value,surfaceZ:face,tipZ:z,depth,
+  inferredFacing:cncAutoChamferLevels().faceFoundByTool.get(Number(toolNumber))||false};
+}
+window.CNCStudioChamferAuto={
+ preview:(number,draft)=>{
+  const tool=draft||window.cncTools?.get?.(number);
+  if(!tool||tool.type!=='Chamfer mill')return '';
+  const cache=cncAutoChamferLevels();
+  if(!cache.tipByTool.has(Number(number)))return 'Load chamfer G-code';
+  return cncAutoChamferD(number,tool).radius.toFixed(3);
+ },
+ details:(number,draft)=>{
+  const tool=draft||window.cncTools?.get?.(number);
+  return tool?cncAutoChamferD(number,tool):null;
+ }
+};
 radius=function(st){
  const nominal=nominalRadiusForChamfer(st);
  if(!st||st.__visualRadius||![41,42].includes(st.comp))return nominal;
- // The D number is an offset-register reference, not the chamfer-tip diameter.
- // MET 238 uses T3 / D3. D can also refer to a different tool-table register.
  const register=Number.isInteger(st.dOffset)&&st.dOffset>0?st.dOffset:st.tool;
  const offsetTool=window.cncTools?.get?.(register)||window.cncTools?.get?.(st.tool);
  if(!offsetTool)return nominal;
+ if(offsetTool.type==='Chamfer mill'&&offsetTool.compMode!=='manual'){
+  const tipZ=Number.isFinite(st.z)?st.z+origin.z:undefined;
+  return cncAutoChamferD(register,offsetTool,tipZ).radius;
+ }
  const configured=Number(offsetTool.compRadius);
  return Number.isFinite(configured)&&configured>=0
-   ?configured
-   :(offsetTool.type==='Chamfer mill'
-      ?Math.max(0,(Number(offsetTool.tipDiameter)||0)/2)
-      :nominal);
+  ?configured
+  :(offsetTool.type==='Chamfer mill'
+    ?Math.max(0,(Number(offsetTool.tipDiameter)||0)/2)
+    :nominal);
 };
 const nominalDisplayCutter=meshCutter;
 meshCutter=function(st){return nominalDisplayCutter(st?{...st,__visualRadius:true}:st);};
