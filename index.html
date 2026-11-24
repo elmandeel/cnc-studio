@@ -7512,6 +7512,70 @@ html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-delete
 
 @media(hover:none){#cnc-program-library .cnc-lib-pop > button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#cnc-program-library .cnc-lib-pop > button,#cnc-program-library .cnc-lib-menu > summary{transition:none}}
+
+/* Detached project-action popover, above all sidebar panels and both workspaces. */
+#cnc-lib-popover.cnc-lib-pop{
+ position:fixed!important;z-index:2147483000!important;
+ box-sizing:border-box!important;display:grid!important;gap:2px!important;
+ min-width:0!important;margin:0!important;padding:6px!important;
+ border:1px solid #35516d!important;border-radius:11px!important;
+ background:#142438!important;box-shadow:0 16px 36px rgba(0,0,0,.35)!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+#cnc-lib-popover.cnc-lib-pop[hidden]{display:none!important}
+#cnc-lib-popover.cnc-lib-pop > button{
+ box-sizing:border-box!important;display:flex!important;
+ width:100%!important;min-height:40px!important;height:auto!important;
+ align-items:center!important;justify-content:flex-start!important;
+ padding:9px 11px!important;margin:0!important;
+ border:1px solid transparent!important;border-radius:7px!important;
+ background:transparent!important;color:#d8e8f5!important;
+ font:500 12px/1.35 system-ui,-apple-system,sans-serif!important;
+ text-align:left!important;white-space:normal!important;cursor:pointer;
+ transition:background-color .13s,border-color .13s,color .13s;
+}
+#cnc-lib-popover.cnc-lib-pop > button:hover{
+ background:#244964!important;border-color:#35617e!important;color:#fff!important;
+}
+#cnc-lib-popover.cnc-lib-pop > button:active{
+ background:#176487!important;color:#fff!important;
+}
+#cnc-lib-popover.cnc-lib-pop > button:focus-visible{
+ outline:2px solid #45bfea!important;outline-offset:-2px;
+ background:#234763!important;color:#fff!important;
+}
+#cnc-lib-popover.cnc-lib-pop > #cnc-lib-delete,
+#cnc-lib-popover.cnc-lib-pop > #cnc-lib-export{
+ border-top:1px solid #36516a!important;
+}
+#cnc-lib-popover.cnc-lib-pop > #cnc-lib-delete:hover{
+ background:#592d38!important;color:#ffccd1!important;border-color:#965365!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop{
+ background:#fff!important;border-color:#c4d5e2!important;
+ box-shadow:0 16px 30px rgba(21,50,77,.18)!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop > button{
+ background:transparent!important;color:#29455c!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop > button:hover{
+ background:#e6f2fa!important;color:#0f5178!important;border-color:#c5e3f2!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop > button:active{
+ background:#cee9f7!important;color:#084869!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop > button:focus-visible{
+ outline-color:#168cbe!important;background:#e1f2fd!important;color:#064f75!important;
+}
+html[data-cnc-theme="light"] #cnc-lib-popover.cnc-lib-pop > #cnc-lib-delete:hover{
+ background:#fce8eb!important;color:#a02340!important;border-color:#f5c1cd!important;
+}
+@media(pointer:coarse){
+ #cnc-lib-popover.cnc-lib-pop > button{min-height:44px!important;font-size:14px!important;padding:11px 12px!important}
+}
+@media(prefers-reduced-motion:reduce){#cnc-lib-popover.cnc-lib-pop > button{transition:none}}
+
 `;
 function el(tag,props={},text){const node=document.createElement(tag);for(const [k,v] of Object.entries(props))node.setAttribute(k,v);if(text!==undefined)node.textContent=text;return node;}
 function message(text){const n=$('cnc-lib-info');if(n)n.textContent=text||'';}
@@ -7602,35 +7666,52 @@ async function start(){const src=$('source'),picker=document.querySelector('.cnc
  const libraryUpload=el('input',{type:'file',id:'cnc-lib-upload',accept:'.nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf,.json',hidden:''});
  bar.append(libraryUpload);
  setMenuAction(menu,'cnc-lib-import',()=>libraryUpload.click());
- document.addEventListener('pointerdown',event=>{if(menu.open&&!menu.contains(event.target))menu.open=false;});
- menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){menu.open=false;menu.querySelector('summary')?.focus();event.preventDefault();}});
 
- // Popover placement uses viewport bounds rather than right:0, which clipped
- // the menu to the left of the screen on narrow iOS/Android layouts.
+ // A desktop sidebar panel has overflow:hidden. Move the menu to document.body
+ // while it is open, so neither the editor nor the adjacent 3D pane can clip it.
  const summary=menu.querySelector('summary');
+ pop.id='cnc-lib-popover';
+ pop.hidden=true;
  function positionProjectMenu(){
   if(!menu.open)return;
-  const rect=summary.getBoundingClientRect();
-  const width=Math.min(220,Math.max(120,document.documentElement.clientWidth-24));
-  const viewportW=document.documentElement.clientWidth;
-  const targetLeft=Math.max(12,Math.min(rect.left,viewportW-12-width));
-  pop.style.left=Math.round(targetLeft-rect.left)+'px';
-  pop.style.right='auto';
+  const trigger=summary.getBoundingClientRect();
+  const viewportWidth=document.documentElement.clientWidth;
+  const visualHeight=window.visualViewport?.height||window.innerHeight;
+  const viewportTop=window.visualViewport?.offsetTop||0;
+  const width=Math.min(220,Math.max(140,viewportWidth-24));
+  const x=Math.max(12,Math.min(trigger.right-width,viewportWidth-width-12));
+  pop.style.left=Math.round(x)+'px';
   pop.style.width=width+'px';
-  // Limit menu height to available screen space; scrolling stays inside menu.
-  const availableBelow=window.innerHeight-rect.bottom-12;
-  const availableAbove=rect.top-12;
-  if(availableBelow<210&&availableAbove>availableBelow){
-    pop.style.top='auto';pop.style.bottom='calc(100% + 6px)';
-    pop.style.maxHeight=Math.max(140,Math.min(400,availableAbove-8))+'px';
-  }else{
-    pop.style.bottom='auto';pop.style.top='calc(100% + 6px)';
-    pop.style.maxHeight=Math.max(140,Math.min(400,availableBelow-8))+'px';
-  }
+  const below=viewportTop+visualHeight-trigger.bottom-12;
+  const above=trigger.top-viewportTop-12;
+  const opensAbove=below<220&&above>below;
+  const available=Math.max(120,opensAbove?above:below);
+  pop.style.maxHeight=Math.floor(Math.min(420,available))+'px';
+  pop.style.top=opensAbove?'auto':Math.round(trigger.bottom+6)+'px';
+  pop.style.bottom=opensAbove?Math.round(visualHeight-(trigger.top-6))+'px':'auto';
  }
- menu.addEventListener('toggle',positionProjectMenu);
+ menu.addEventListener('toggle',()=>{
+  if(menu.open){
+   if(pop.parentElement!==document.body)document.body.append(pop);
+   pop.hidden=false;
+   positionProjectMenu();
+  }else{
+   pop.hidden=true;
+   if(pop.parentElement!==menu)menu.append(pop);
+  }
+ });
+ document.addEventListener('pointerdown',event=>{
+  if(menu.open&&!menu.contains(event.target)&&!pop.contains(event.target))menu.open=false;
+ },{capture:true});
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&menu.open){
+   menu.open=false;summary.focus();event.preventDefault();
+  }
+ });
+ document.addEventListener('scroll',()=>{if(menu.open)positionProjectMenu();},true);
  window.addEventListener('resize',positionProjectMenu);
  window.visualViewport?.addEventListener('resize',positionProjectMenu);
+ window.visualViewport?.addEventListener('scroll',positionProjectMenu);
 
 
  libraryUpload.addEventListener('change',async()=>{try{await importProgram(libraryUpload.files?.[0]);}catch(e){message('Import failed: '+e.message)}finally{libraryUpload.value='';}});
