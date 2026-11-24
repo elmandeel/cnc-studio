@@ -7415,6 +7415,81 @@ html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop button{background
 html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop{background:#fff;border-color:#c7d5e2}
 html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-info{color:#526b82}
 @media(max-width:540px){#cnc-program-library{gap:5px}#cnc-program-library button{padding:6px 9px}#cnc-program-library select{flex-basis:100%;order:1}#cnc-program-library .cnc-lib-label{order:0;flex:1}#cnc-program-library #cnc-lib-new,#cnc-program-library #cnc-lib-save,#cnc-program-library .cnc-lib-menu{order:2}}
+
+/* Project actions: same compact, rounded interaction language as CNC Studio. */
+#cnc-program-library .cnc-lib-menu > summary{
+ box-sizing:border-box;user-select:none;transition:background-color .16s ease,border-color .16s ease,color .16s ease;
+}
+#cnc-program-library .cnc-lib-menu[open] > summary,
+#cnc-program-library .cnc-lib-menu > summary:hover{
+ background:#315572;border-color:#6489a5;color:#fff;
+}
+#cnc-program-library .cnc-lib-menu > summary:focus-visible{
+ outline:2px solid #38b9ec;outline-offset:3px;
+}
+#cnc-program-library .cnc-lib-pop{
+ box-sizing:border-box;min-width:192px;max-width:min(260px,calc(100vw - 24px));
+ padding:6px;gap:2px;background:#142438;border:1px solid #35516d;
+ border-radius:11px;box-shadow:0 16px 36px rgba(0,0,0,.35);
+ overflow:hidden;
+}
+#cnc-program-library .cnc-lib-pop > button{
+ box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;
+ width:100%;min-height:38px;height:auto;padding:9px 11px;
+ margin:0;border:1px solid transparent;border-radius:7px;
+ background:transparent;color:#d8e8f5;font:500 12px/1.35 inherit;
+ text-align:left;white-space:normal;cursor:pointer;
+ transition:background-color .13s ease,border-color .13s ease,color .13s ease;
+}
+#cnc-program-library .cnc-lib-pop > button:hover{
+ background:#244964;border-color:#35617e;color:#fff;
+}
+#cnc-program-library .cnc-lib-pop > button:active{
+ background:#176487;color:#fff;
+}
+#cnc-program-library .cnc-lib-pop > button:focus-visible{
+ outline:2px solid #45bfea;outline-offset:-2px;background:#234763;color:#fff;
+}
+#cnc-program-library .cnc-lib-pop > #cnc-lib-delete{
+ border-top:1px solid #36516a;margin-top:3px;padding-top:10px;
+}
+#cnc-program-library .cnc-lib-pop > #cnc-lib-delete:hover{
+ background:#592d38;color:#ffccd1;border-color:#965365;
+}
+#cnc-program-library .cnc-lib-pop > #cnc-lib-export{
+ border-top:1px solid #36516a;margin-top:3px;padding-top:10px;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-menu > summary{
+ background:#eaf2f9;color:#19374e;border-color:#a9bed2;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-menu > summary:hover,
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-menu[open] > summary{
+ background:#d6e9f7;color:#103d5a;border-color:#78a6c5;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop{
+ background:#fff;border-color:#c4d5e2;box-shadow:0 16px 30px rgba(21,50,77,.18);
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > button{
+ background:transparent;color:#29455c;border-color:transparent;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > button:hover{
+ background:#e6f2fa;color:#0f5178;border-color:#c5e3f2;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > button:active{
+ background:#cee9f7;color:#084869;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > button:focus-visible{
+ background:#e1f2fd;color:#064f75;outline-color:#168cbe;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-delete,
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-export{
+ border-top-color:#d9e5ef;
+}
+html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-delete:hover{
+ background:#fce8eb;color:#a02340;border-color:#f5c1cd;
+}
+@media(hover:none){#cnc-program-library .cnc-lib-pop > button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){#cnc-program-library .cnc-lib-pop > button,#cnc-program-library .cnc-lib-menu > summary{transition:none}}
 `;
 function el(tag,props={},text){const node=document.createElement(tag);for(const [k,v] of Object.entries(props))node.setAttribute(k,v);if(text!==undefined)node.textContent=text;return node;}
 function message(text){const n=$('cnc-lib-info');if(n)n.textContent=text||'';}
@@ -7493,7 +7568,7 @@ async function start(){const src=$('source'),picker=document.querySelector('.cnc
  const bar=el('div',{id:'cnc-program-library'});bar.append(el('label',{for:'cnc-lib-select',class:'cnc-lib-label'},'Programs'));
  const sel=el('select',{id:'cnc-lib-select','aria-label':'Saved CNC programs'});sel.add(new Option('New / unsaved',''));bar.append(sel);
  const n=el('button',{type:'button',id:'cnc-lib-new',class:'btn'},'+ New');const saveButton=el('button',{type:'button',id:'cnc-lib-save',class:'btn primary'},'Save');bar.append(n,saveButton);
- const menu=el('details',{class:'cnc-lib-menu',id:'cnc-lib-menu'});menu.append(el('summary',{},'•••'));
+ const menu=el('details',{class:'cnc-lib-menu',id:'cnc-lib-menu'});menu.append(el('summary',{'aria-label':'More program actions',title:'More program actions'},'•••'));
  const pop=el('div',{class:'cnc-lib-pop'});for(const [id,label] of [['save-as','Save As'],['rename','Rename'],['duplicate','Duplicate'],['delete','Delete'],['export','Export .nc'],['backup','Backup project'],['import','Import file']])pop.append(el('button',{type:'button',id:'cnc-lib-'+id},label));menu.append(pop);bar.append(menu);
  bar.append(el('span',{id:'cnc-lib-info',class:'cnc-lib-info','aria-live':'polite'},''));
  picker.insertAdjacentElement('beforebegin',bar);
@@ -7505,6 +7580,9 @@ async function start(){const src=$('source'),picker=document.querySelector('.cnc
  const libraryUpload=el('input',{type:'file',id:'cnc-lib-upload',accept:'.nc,.tap,.txt,.gcode,.cnc,.ngc,.docx,.doc,.pdf,.json',hidden:''});
  bar.append(libraryUpload);
  setMenuAction(menu,'cnc-lib-import',()=>libraryUpload.click());
+ document.addEventListener('pointerdown',event=>{if(menu.open&&!menu.contains(event.target))menu.open=false;});
+ menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){menu.open=false;menu.querySelector('summary')?.focus();event.preventDefault();}});
+
  libraryUpload.addEventListener('change',async()=>{try{await importProgram(libraryUpload.files?.[0]);}catch(e){message('Import failed: '+e.message)}finally{libraryUpload.value='';}});
  src.addEventListener('input',mark);for(const field of dataFields)$(field)?.addEventListener('input',mark);
  document.addEventListener('cnc-tools-change',mark);
