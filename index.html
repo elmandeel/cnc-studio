@@ -1706,7 +1706,7 @@ function cncRenderSpindleFeed(s){
  feed.textContent=hasFeed?'F'+f.toLocaleString('en-US',{maximumFractionDigits:2})+' mm/min':'Not programmed';
  feed.title=hasFeed?'Last programmed feed setting; not the actual feed during rapid moves or while stopped':'No active F feed setting found at this execution block';
 }
-function render(n=cursor,f=1){recalc(n,f);let s=at(n,f),e=n?steps[n-1]:null;cnc2DLiveFrame(n,f);draw3(s);for(const k of ['x','y','z'])$(k).textContent=s[k]==null?'—':s[k].toFixed(2);$('tool').textContent=s.tool?'T'+s.tool+' '+window.cncTools.name(s.tool)+' Ø'+(diam[s.tool]||10):'None';cncRenderSpindleFeed(s);$('mode').textContent=e?(e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP'):'READY';$('cmd').textContent=e?`${e.n}   ${e.code}`:'Ready';$('description').textContent=e?e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?`Movement in ${e.mode===0?'rapid positioning':'cutting feed'}; current tool T${s.tool||'?'}, XY origin offset (${origin.x}, ${origin.y}), G54 Z offset ${origin.z}.`:'Modal setting, spindle or tool command.':'Load and select a command to begin.';$('progress').textContent=`${n} / ${steps.length}`;$('seek').value=n;$('linenumber').textContent=e?'Line '+e.sourceLine:'Start';$('op').textContent=e?`T${s.tool||'?'} · ${e.mode===0?'rapid':'cut'}`:'Ready';$('ws-status').textContent=`G54 (${origin.x}, ${origin.y}, ${origin.z})${(s.g52x||s.g52y||s.g52z)?` · G52 (${s.g52x||0}, ${s.g52y||0}, ${s.g52z||0})`:''} · ${stock.x} × ${stock.y} × ${stock.z} mm`;$('messages').textContent=warnings.slice(0,6).join('\n')+(warnings.length>6?`\n… and ${warnings.length-6} more`:'');}
+function render(n=cursor,f=1){recalc(n,f);let s=at(n,f),e=n?steps[n-1]:null;cnc2DLiveFrame(n,f);draw3(s);for(const k of ['x','y','z'])$(k).textContent=s[k]==null?'—':s[k].toFixed(2);$('tool').textContent=s.tool?'T'+s.tool+' '+window.cncTools.name(s.tool)+' Ø'+(diam[s.tool]||10):'None';cncRenderSpindleFeed(s);$('mode').textContent=e?((e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP')+(s.comp?' · G'+s.comp:' · G40')):'READY';$('cmd').textContent=e?`${e.n}   ${e.code}`:'Ready';$('description').textContent=e?e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?`Movement in ${e.mode===0?'rapid positioning':'cutting feed'}; current tool T${s.tool||'?'}, XY origin offset (${origin.x}, ${origin.y}), G54 Z offset ${origin.z}.`:'Modal setting, spindle or tool command.':'Load and select a command to begin.';$('progress').textContent=`${n} / ${steps.length}`;$('seek').value=n;$('linenumber').textContent=e?'Line '+e.sourceLine:'Start';$('op').textContent=e?`T${s.tool||'?'} · ${e.mode===0?'rapid':'cut'}`:'Ready';$('ws-status').textContent=`G54 (${origin.x}, ${origin.y}, ${origin.z})${(s.g52x||s.g52y||s.g52z)?` · G52 (${s.g52x||0}, ${s.g52y||0}, ${s.g52z||0})`:''} · ${stock.x} × ${stock.y} × ${stock.z} mm`;$('messages').textContent=warnings.slice(0,6).join('\n')+(warnings.length>6?`\n… and ${warnings.length-6} more`:'');}
 function stop(){running=false;cancelAnimationFrame(raf);$('play').textContent='▶ Play';}function jump(n){stop();cncEnterBlock(Math.max(0,Math.min(steps.length,n)));render();}
 function load(){
  try{
@@ -4122,7 +4122,7 @@ render=function(n=cursor,f=1){
  $('progress').textContent=n+' / '+steps.length;
  $('seek').value=n;
  $('ws-status').textContent='G54 ('+origin.x+', '+origin.y+', '+origin.z+') · '+(stock.shape==='cylinder'?'Ø'+stock.x:stock.x+' × '+stock.y)+' × '+stock.z+' mm';
- if(e){$('cmd').textContent=e.n+'   '+e.code;$('mode').textContent=e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP';$('description').textContent=e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?'Executing '+e.n+' with tool T'+(s.tool||'?')+'.':'Executing a modal, spindle or tool command.';}else{$('cmd').textContent='Ready';$('mode').textContent='READY';$('description').textContent='Preview ready. Use Play or Step to begin.';$('op').textContent='Ready';}
+ if(e){$('cmd').textContent=e.n+'   '+e.code;$('mode').textContent=(e.hasMove?['RAPID G00','FEED G01','ARC G02','ARC G03'][e.mode]:'SETUP')+(s.comp?' · G'+s.comp:' · G40');$('description').textContent=e.referenceReturn?cncReferenceDescription(e):e.toolChangeRetract?'Moving the current tool to Z30 mm before changing tools.':e.hasMove?'Executing '+e.n+' with tool T'+(s.tool||'?')+'.':'Executing a modal, spindle or tool command.';}else{$('cmd').textContent='Ready';$('mode').textContent='READY';$('description').textContent='Preview ready. Use Play or Step to begin.';$('op').textContent='Ready';}
  studioDisplayedBlock=n;
 };
 const studioOriginalOverlay=overlay;
@@ -7051,6 +7051,28 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
    state('invalid','Update paused: '+error+' Previous preview retained.');
    return false;
   }
+  // Editing/appending a NEXT block must not rewind a completed modal block.
+  // G41/G42 are modal and remain active until an actual G40 (or program end).
+  // Only retain the cursor if ALL already executed blocks have the same
+  // effective before/after state, including tool, offsets and compensation.
+  const previousSteps=steps,completed=cursor;
+  const previousConfiguration=applied?JSON.parse(applied):null;
+  const nextConfiguration=JSON.parse(next);
+  const sameSetup=!!previousConfiguration &&
+   JSON.stringify(previousConfiguration.slice(1))===JSON.stringify(nextConfiguration.slice(1));
+  function equalStep(a,b){
+   if(!a||!b||a.code!==b.code||a.sourceLine!==b.sourceLine||
+      a.mode!==b.mode||a.hasMove!==b.hasMove)return false;
+   for(const side of ['before','after']){
+    for(const key of ['x','y','z','tool','comp','dOffset','g52x','g52y','g52z','abs','units']){
+     if(!Object.is(a[side]?.[key],b[side]?.[key]))return false;
+    }
+   }
+   return true;
+  }
+  const retain=completed>0&&sameSetup&&
+    prepared.parsed.out.length>=completed&&
+    previousSteps.slice(0,completed).every((block,index)=>equalStep(block,prepared.parsed.out[index]));
   state('updating','Updating preview…');committing=true;
   try{
    cncPreparedLoad=prepared;
@@ -7061,11 +7083,13 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
    return false;
   }finally{committing=false;cncPreparedLoad=null;}
   applied=signature();dirty=false;updates++;error='';
-  // Older load wrappers update caches/legends but their redundant renders are
-  // coalesced here, after the worker has received the complete new setup.
-  priorRender(0,1);
+  // A new line typed after a completed G41/G42 block extends the same
+  // execution, so keep the current compensation mode and stock position.
+  // Edits to already-executed motion/reset/setup still start from block zero.
+  if(retain)cncEnterBlock(completed);
+  priorRender(retain?completed:0,1);
   $('cnc-stopbox').classList.remove('open');
-  state('ready',steps.length?'Preview updated · ready to play':'Enter G-code to begin');
+  state('ready',steps.length?(retain?'Preview extended · modal state retained':'Preview updated · ready to play'):'Enter G-code to begin');
   document.dispatchEvent(new CustomEvent('cnc-project-updated',{detail:{revision,updates,blocks:steps.length}}));
   return true;
  }
