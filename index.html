@@ -7488,6 +7488,28 @@ html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-export
 html[data-cnc-theme="light"] #cnc-program-library .cnc-lib-pop > #cnc-lib-delete:hover{
  background:#fce8eb;color:#a02340;border-color:#f5c1cd;
 }
+
+/* Small screens: position the menu from its trigger and never let it escape the viewport. */
+@media (max-width:680px), (pointer:coarse){
+ #cnc-program-library .cnc-lib-menu{isolation:isolate;flex:0 0 auto}
+ #cnc-program-library .cnc-lib-menu > summary{
+  box-sizing:border-box;min-width:44px;min-height:44px;padding:8px 12px;
+  touch-action:manipulation;
+ }
+ #cnc-program-library .cnc-lib-pop{
+  left:0;right:auto;top:calc(100% + 6px);
+  width:220px;min-width:0;max-width:calc(100vw - 24px);
+  max-height:min(400px,65dvh);overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  z-index:1200;
+ }
+ #cnc-program-library .cnc-lib-pop > button{
+  display:flex;align-items:center;height:auto;min-height:44px;
+  font-size:14px;line-height:1.35;padding:11px 12px;
+  border-radius:7px;
+ }
+}
+
 @media(hover:none){#cnc-program-library .cnc-lib-pop > button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){#cnc-program-library .cnc-lib-pop > button,#cnc-program-library .cnc-lib-menu > summary{transition:none}}
 `;
@@ -7582,6 +7604,34 @@ async function start(){const src=$('source'),picker=document.querySelector('.cnc
  setMenuAction(menu,'cnc-lib-import',()=>libraryUpload.click());
  document.addEventListener('pointerdown',event=>{if(menu.open&&!menu.contains(event.target))menu.open=false;});
  menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){menu.open=false;menu.querySelector('summary')?.focus();event.preventDefault();}});
+
+ // Popover placement uses viewport bounds rather than right:0, which clipped
+ // the menu to the left of the screen on narrow iOS/Android layouts.
+ const summary=menu.querySelector('summary');
+ function positionProjectMenu(){
+  if(!menu.open)return;
+  const rect=summary.getBoundingClientRect();
+  const width=Math.min(220,Math.max(120,document.documentElement.clientWidth-24));
+  const viewportW=document.documentElement.clientWidth;
+  const targetLeft=Math.max(12,Math.min(rect.left,viewportW-12-width));
+  pop.style.left=Math.round(targetLeft-rect.left)+'px';
+  pop.style.right='auto';
+  pop.style.width=width+'px';
+  // Limit menu height to available screen space; scrolling stays inside menu.
+  const availableBelow=window.innerHeight-rect.bottom-12;
+  const availableAbove=rect.top-12;
+  if(availableBelow<210&&availableAbove>availableBelow){
+    pop.style.top='auto';pop.style.bottom='calc(100% + 6px)';
+    pop.style.maxHeight=Math.max(140,Math.min(400,availableAbove-8))+'px';
+  }else{
+    pop.style.bottom='auto';pop.style.top='calc(100% + 6px)';
+    pop.style.maxHeight=Math.max(140,Math.min(400,availableBelow-8))+'px';
+  }
+ }
+ menu.addEventListener('toggle',positionProjectMenu);
+ window.addEventListener('resize',positionProjectMenu);
+ window.visualViewport?.addEventListener('resize',positionProjectMenu);
+
 
  libraryUpload.addEventListener('change',async()=>{try{await importProgram(libraryUpload.files?.[0]);}catch(e){message('Import failed: '+e.message)}finally{libraryUpload.value='';}});
  src.addEventListener('input',mark);for(const field of dataFields)$(field)?.addEventListener('input',mark);
