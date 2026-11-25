@@ -7170,8 +7170,15 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
      Math.min(Math.abs(x[0].index-completed),Math.abs(x[x.length-1].index+1-completed));
     return !best||distance(g)<distance(best)?g:best;
    },null);
-   // Locate the edited block within this invocation; an incomplete
-   // N-only row is represented by the first executable row after it.
+   // Preview the block being edited as EXECUTED, not as the next block.
+   // This makes G41/G42 take effect in their own completed block, including
+   // when the same O subprogram is invoked repeatedly through M98.
+   const clean=(rows[line-1]||'').replace(/\([^)]*\)/g,'').replace(/;.*$/,'')
+    .replace(/^\s*\/\s*/,'').replace(/^\s*N\s*\d+\b/i,'').trim();
+   const current=group.filter(({block})=>block.sourceLine===line);
+   if(clean&&current.length&&!/(?:^|\s)[A-Z]\s*[-+]?\s*$/i.test(clean))
+    return current[current.length-1].index+1;
+   // A blank or incomplete N-only line should not run the following block.
    const next=group.find(({block})=>block.sourceLine>=line);
    return next?next.index:group[group.length-1].index+1;
   }
