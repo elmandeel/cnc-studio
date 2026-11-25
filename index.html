@@ -1315,6 +1315,7 @@ async function cncImportProgramFile(f){
   window.cncLive2DMesh=null;
   if(guard)guard.endImport(token);
   const loaded=load();
+  if(loaded!==false)window.cncResetImportedScene?.();
   $('loadstatus').textContent=(loaded===false?'Imported, awaiting correction: ':'Imported ')+f.name+' · tools rebuilt · stock and G54 reset (estimated from toolpath; verify before machining).';
   $('toolstatus').textContent=toolMsg+' | Tool dimensions absent from source use default values and must be checked.';
   $('file').value='';
@@ -7206,6 +7207,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
  window.cncAutoUpdate={
   schedule,flush,
   beginImport(kind){
+   editingSourceLine=null;
    cancelTimer();stop();cncProgramText.clear();
    const token=++importId;activeImport={token,kind};
    state('importing',kind==='tools'?'Reading tool data…':'Reading program…');
@@ -7861,6 +7863,7 @@ async function importProgram(file){if(!file||busy||hasUnsaved())return;
    if(revision!==editRevision||(guard&&!guard.acceptImport(token)))return message('Import cancelled because the program changed');
    if(!p||typeof p.code!=='string'||!Array.isArray(p.tools)||!p.settings||typeof p.settings!=='object'||Array.isArray(p.settings))throw Error('Not a compatible CNC Studio project backup');
    guard?.endImport(token);p.id='';apply(p);
+   window.cncResetImportedScene?.();
   }finally{guard?.endImport(token);}
  }else{
   // Reuse CNC Studio's document extraction, tool hints, setup inference and import guard.
@@ -7960,6 +7963,16 @@ async function start(){const src=$('source'),picker=document.querySelector('.cnc
  await refresh();await seedSamples();
  message(dirty?'Unsaved changes':'New program');
 }
+// Imported files begin with uncut stock, playback at the start and a fresh
+// 3D camera. Never run this on ordinary editor changes or subprogram edits.
+window.cncResetImportedScene=function(){
+ const reset=document.getElementById('reset');
+ reset?.click(); // Reset worker/stock and execution cursor.
+ window.CNCStudioView?.resetView?.(); // Restore ISO view, pan and zoom.
+ window.CNCStudioView?.redraw?.();
+ const source=document.getElementById('source');
+ if(source)source.scrollTop=0;
+};
 function boot(){start().catch(err=>{
  console.error('[CNC Library]',err);
  const bar=$('cnc-program-library');if(bar)bar.style.display='none';
