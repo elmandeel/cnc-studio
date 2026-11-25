@@ -7090,18 +7090,52 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
    return false;
   }finally{committing=false;cncPreparedLoad=null;}
   applied=signature();dirty=false;updates++;error='';
-  // Editing a block resumes from the state of its immediate predecessor.
-  // Rebuild the XYZ, tool, offsets and G41/G42 state from the new parse.
-  let target=retain?completed:0;
-  if(editingSourceLine!==null){
-   // The selected source line may not yet be a parsed execution block
-   // (e.g. a newly inserted N-only line). Stop BEFORE that source line.
-   // Subsequent blocks are deliberately not executed until Step/Play.
-   const first=steps.findIndex(block=>Number(block.sourceLine)>=editingSourceLine);
-   target=first<0?steps.length:first;
-   // If the current block expands into multiple execution operations, the
-   // first operation must be the restart point, never the last expansion.
+  // Source-file order is NOT execution order: M98 may execute O14 after
+  // the main program's M30, and may call the same O program repeatedly.
+  // Map the caret to an execution block in its own O-program section and
+  // prefer the invocation currently being stepped through.
+  function editingTarget(line){
+   const rows=editor.value.split(/\r?\n/);
+   const headers=[];
+   for(let i=0;i<rows.length;i++){
+    const clean=rows[i].replace(/\([^)]*\)/g,'').replace(/;.*$/,'').trim();
+    const match=/^O\s*(\d+)\s*$/i.exec(clean);
+    if(match)headers.push({line:i+1,id:Number(match[1])});
+   }
+   const header=[...headers].reverse().find(h=>h.line<=line);
+   const nextHeader=headers.find(h=>h.line>line);
+   const lower=header?header.line:1;
+   const upper=nextHeader?nextHeader.line-1:rows.length;
+   const section=steps.map((block,index)=>({block,index}))
+    .filter(({block})=>block.sourceLine>=lower&&block.sourceLine<=upper);
+   if(!section.length)return retain?completed:Math.min(completed,steps.length);
+   // Identify the currently executing invocation (e.g. O14 [2/3]).
+   // Repeated calls must not bounce to the first O14 execution instance.
+   const context=previousSteps[Math.max(0,Math.min(completed,previousSteps.length)-1)];
+   const prefix=String(context?.n||'').split(' · ')[0];
+   const inSameInvocation=section.filter(({block})=>
+    prefix && String(block.n||'').startsWith(prefix+' · '));
+   const matches=inSameInvocation.length?inSameInvocation:section;
+   // Each M98 invocation is contiguous. Select the nearest invocation
+   // to the previously displayed execution block, not source row order.
+   const groups=[];
+   for(const item of matches){
+    let group=groups[groups.length-1];
+    if(!group||item.index>group[group.length-1].index+1)groups.push(group=[]);
+    group.push(item);
+   }
+   const group=groups.reduce((best,g)=>{
+    const distance=x=>x[0].index<=completed&&completed<=x[x.length-1].index+1?0:
+     Math.min(Math.abs(x[0].index-completed),Math.abs(x[x.length-1].index+1-completed));
+    return !best||distance(g)<distance(best)?g:best;
+   },null);
+   // Locate the edited block within this invocation; an incomplete
+   // N-only row is represented by the first executable row after it.
+   const next=group.find(({block})=>block.sourceLine>=line);
+   return next?next.index:group[group.length-1].index+1;
   }
+  let target=retain?completed:0;
+  if(editingSourceLine!==null)target=editingTarget(editingSourceLine);
   target=Math.max(0,Math.min(steps.length,target));
   cncEnterBlock(target);
   priorRender(target,1);
