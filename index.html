@@ -3509,11 +3509,7 @@ segments=function(e){
  let prev=crcNeighbor(index,c,false),next=crcNeighbor(index,c,true);
  // G41/G42 activation follows the programmed approach into the first compensated start.
  if(!e.before.comp&&e.after.comp){
-  // Immediately apply CRC to THIS G41/G42 feed block using its own
-  // programmed XY direction. Waiting for the following contour block
-  // caused the live Single Block preview to show centerline motion until
-  // the user typed the next line. No future block is required for entry.
-  const d=crcXYDir(e);
+  let d=next?crcXYDir(next):crcXYDir(e);
   return d?[[p,crcOffset(q,d,radius(e.after),c)]]:originalSegments(e);
  }
  // G40 cancellation exits continuously from the final compensated contour.
@@ -3559,12 +3555,8 @@ segments=function(e){
    const entering=!e.before.comp&&e.after.comp;
    const neighbor=steps[idx+(entering?1:-1)];
    if(neighbor&&neighbor.arc&&neighbor.hasMove&&neighbor.before.comp===c&&neighbor.after.comp===c){
-    // Do not retroactively change the G41/G42 activation block after
-    // another program line is typed. The entry offset must be observable
-    // and stable immediately after completing the active block.
-    if(entering)return cncArcCompSegments(e);
-    const arc=cncArcCompSegments(neighbor),p=crcPoint(e.after);
-    if(arc.length&&p){const end=arc[arc.length-1][1];return [[end,p]];}
+    const arc=cncArcCompSegments(neighbor),p=entering?crcPoint(e.before):crcPoint(e.after);
+    if(arc.length&&p){const end=entering?arc[0][0]:arc[arc.length-1][1];return entering?[[p,end]]:[[end,p]];}
    }
   }
  }
