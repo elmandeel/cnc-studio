@@ -7074,7 +7074,16 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   // Preserve manual editing intent across input, Enter, auto-numbering and
   // semicolon normalization. Setup/library changes intentionally clear it.
   if(reason==='program'){
-   editingSourceLine=editor.value.slice(0,editor.selectionStart).split('\n').length;
+   const rows=editor.value.split(/\r?\n/);
+   const caretLine=editor.value.slice(0,editor.selectionStart).split('\n').length;
+   // Enter puts the caret on a newly numbered but still empty row.
+   // Preview the just-completed block NOW, not only after the next block.
+   // This includes G41/G42 lead-in moves inside expanded M98 subprograms.
+   const row=(rows[caretLine-1]||'').replace(/\([^)]*\)/g,'')
+    .replace(/;.*$/,'').replace(/^\s*N\s*\d+\b/i,'').trim();
+   const preceding=(rows[caretLine-2]||'').replace(/\([^)]*\)/g,'')
+    .replace(/;.*$/,'').replace(/^\s*N\s*\d+\b/i,'').trim();
+   editingSourceLine=(!row&&preceding&&caretLine>1)?caretLine-1:caretLine;
   }else editingSourceLine=null;
   // Imported data has already passed its asynchronous latest-request guard.
   if(reason!=='import')cancelImport();
