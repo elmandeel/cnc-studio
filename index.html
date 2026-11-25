@@ -3562,10 +3562,51 @@ segments=function(e){
  }
  return cncArcCompSegments(e);
 };
+// Modal-only blocks keep the actual tool-center position during Single Block.
+function cncCutterCenterBefore(index){
+ for(let k=index-1;k>=0;k--){
+  const previous=steps[k];
+  if(previous?.hasMove){
+   const p=segments(previous);
+   return p.length?p[p.length-1][1]:crcPoint(previous.after);
+  }
+ }
+ return null;
+}
+// If G41/G42 was activated in a standalone modal block, its next feed
+// movement is the lead-in from the physical position, not an offset jump.
+const cncModalBaseSegments=segments;
+segments=function(e){
+ const path=cncModalBaseSegments(e);
+ if(!e?.hasMove||e.mode!==1||e.arc||!e.before?.comp||
+    e.before.comp!==e.after?.comp||!path.length)return path;
+ const index=cncStepIndex(e);
+ if(index<0)return path;
+ let activation=false;
+ for(let k=index-1;k>=0;k--){
+  const earlier=steps[k];
+  if(earlier.hasMove)break;
+  if(!earlier.before?.comp&&earlier.after?.comp===e.after.comp){
+   activation=true;break;
+  }
+  if(earlier.before?.comp!==earlier.after?.comp)break;
+ }
+ if(!activation)return path;
+ const start=cncCutterCenterBefore(index),end=path[path.length-1][1];
+ return start&&end?[[start,end]]:path;
+};
 // Cutter position is evaluated on the actual compensated centerline for every frame.
 at=function(n,f=1){
  if(!n)return{x:null,y:null,z:null,tool:0,rpm:0,feed:0,spindle:false};
  let e=steps[n-1],state={...e.after};
+ if(!e.hasMove){
+  const previous=cncCutterCenterBefore(n-1);
+  if(previous){
+   state.x=previous.x-origin.x;
+   state.y=previous.y-origin.y;
+   state.z=previous.z-origin.z;
+  }
+ }
  if(e.hasMove){let path=segments(e);if(path.length){
   let lengths=path.map(([a,b])=>Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z));
   let left=Math.max(0,Math.min(1,f))*lengths.reduce((a,b)=>a+b,0);
