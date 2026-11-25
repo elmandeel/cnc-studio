@@ -7011,6 +7011,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
  const priorLoad=load,priorRender=render;
  let timer=0,dirty=false,composing=false,committing=false,importId=0,activeImport=null;
  let applied='',revision=0,updates=0,error='',sourceError=false;
+ let editingSourceLine=null;
 
  function signature(){
   return JSON.stringify([editor.value,fields.map(id=>$(id).value),window.cncTools.snapshotDraft()]);
@@ -7029,6 +7030,7 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   activeImport=null;importId++;cncImportSerial++;
  }
  function schedule(reason='edit',delay=450){
+  editingSourceLine=reason==='program'?editor.value.slice(0,editor.selectionStart).split('\n').length:null;
   // Imported data has already passed its asynchronous latest-request guard.
   if(reason!=='import')cancelImport();
   stop();cncProgramText.clear();dirty=true;revision++;error='';cancelTimer();
@@ -7084,13 +7086,17 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
    return false;
   }finally{committing=false;cncPreparedLoad=null;}
   applied=signature();dirty=false;updates++;error='';
-  // A new line typed after a completed G41/G42 block extends the same
-  // execution, so keep the current compensation mode and stock position.
-  // Edits to already-executed motion/reset/setup still start from block zero.
-  if(retain)cncEnterBlock(completed);
-  priorRender(retain?completed:0,1);
+  // Editing a block resumes from the state of its immediate predecessor.
+  // Rebuild the XYZ, tool, offsets and G41/G42 state from the new parse.
+  let target=retain?completed:0;
+  if(editingSourceLine!==null && sameSetup){
+   const first=steps.findIndex(block=>block.sourceLine>=editingSourceLine);
+   target=first<0?steps.length:first;
+  }
+  cncEnterBlock(target);
+  priorRender(target,1);
   $('cnc-stopbox').classList.remove('open');
-  state('ready',steps.length?(retain?'Preview extended · modal state retained':'Preview updated · ready to play'):'Enter G-code to begin');
+  state('ready',steps.length?(editingSourceLine!==null?'Preview follows editing cursor':retain?'Preview extended · modal state retained':'Preview updated · ready to play'):'Enter G-code to begin');
   document.dispatchEvent(new CustomEvent('cnc-project-updated',{detail:{revision,updates,blocks:steps.length}}));
   return true;
  }
