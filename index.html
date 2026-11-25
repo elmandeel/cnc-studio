@@ -7030,7 +7030,11 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   activeImport=null;importId++;cncImportSerial++;
  }
  function schedule(reason='edit',delay=450){
-  editingSourceLine=reason==='program'?editor.value.slice(0,editor.selectionStart).split('\n').length:null;
+  // Preserve manual editing intent across input, Enter, auto-numbering and
+  // semicolon normalization. Setup/library changes intentionally clear it.
+  if(reason==='program'){
+   editingSourceLine=editor.value.slice(0,editor.selectionStart).split('\n').length;
+  }else editingSourceLine=null;
   // Imported data has already passed its asynchronous latest-request guard.
   if(reason!=='import')cancelImport();
   stop();cncProgramText.clear();dirty=true;revision++;error='';cancelTimer();
@@ -7089,10 +7093,16 @@ body.cnc-program-3d #workspaces.cnc-split-view>.view .viewport{
   // Editing a block resumes from the state of its immediate predecessor.
   // Rebuild the XYZ, tool, offsets and G41/G42 state from the new parse.
   let target=retain?completed:0;
-  if(editingSourceLine!==null && sameSetup){
-   const first=steps.findIndex(block=>block.sourceLine>=editingSourceLine);
+  if(editingSourceLine!==null){
+   // The selected source line may not yet be a parsed execution block
+   // (e.g. a newly inserted N-only line). Stop BEFORE that source line.
+   // Subsequent blocks are deliberately not executed until Step/Play.
+   const first=steps.findIndex(block=>Number(block.sourceLine)>=editingSourceLine);
    target=first<0?steps.length:first;
+   // If the current block expands into multiple execution operations, the
+   // first operation must be the restart point, never the last expansion.
   }
+  target=Math.max(0,Math.min(steps.length,target));
   cncEnterBlock(target);
   priorRender(target,1);
   $('cnc-stopbox').classList.remove('open');
