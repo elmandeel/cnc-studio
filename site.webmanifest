@@ -6,8 +6,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#081a34",
-  "theme_color": "#081a34",
+  "background_color": "#202124",
+  "theme_color": "#202124",
   "icons": [
     {
       "src": "./icons/apple-touch-icon-cnc-20261119-r3.png",
